@@ -16,6 +16,11 @@ const config: DocsThemeConfig = {
   },
   primaryHue: 161,
   primarySaturation: 100,
+  useNextSeoProps() {
+    return {
+      titleTemplate: '%s – DryerJS'
+    }
+  }
 };
 
 export default config;

@@ -1,0 +1,32 @@
+{
+  "property": {
+    "title": "Property",
+    "theme": {
+      "breadcrumb": false
+    }
+  },
+  "crud-apis": {
+    "title": "CRUD APIs",
+    "theme": {
+      "breadcrumb": false
+    }
+  },
+  "embedded": {
+    "title": "Embedded",
+    "theme": {
+      "breadcrumb": false
+    }
+  },
+  "Relations": {
+    "title": "Relations",
+    "theme": {
+      "breadcrumb": false
+    }
+  },
+  "bulk-apis": {
+    "title": "Bulk APIs",
+    "theme": {
+      "breadcrumb": false
+    }
+  }
+}
