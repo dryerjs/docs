@@ -1,8 +1,12 @@
 {
-  "index": "Introduction",
-  "about": {
-    "title": "About",
-    "type": "page"
+  "index": {
+    "title": "Quick start",
+    "theme": {
+      "breadcrumb": false,
+      "footer": true,
+      "sidebar": true,
+      "toc": false 
+    }
   },
   "contact": {
     "title": "Contact ↗",

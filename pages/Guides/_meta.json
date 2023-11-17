@@ -1,0 +1,26 @@
+{
+  "field": {
+    "title": "Field",
+    "theme": {
+      "breadcrumb": false
+    }
+  },
+  "embedded": {
+    "title": "Embedded",
+    "theme": {
+      "breadcrumb": false
+    }
+  },
+  "relations": {
+    "title": "Relations",
+    "theme": {
+      "breadcrumb": false
+    }
+  },
+  "bulk-apis": {
+    "title": "Bulk APIs",
+    "theme": {
+      "breadcrumb": false
+    }
+  }
+}
