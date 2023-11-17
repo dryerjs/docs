@@ -10,7 +10,7 @@ const config: DocsThemeConfig = {
   chat: {
     link: "https://discord.gg/dcRkQ4e9",
   },
-  docsRepositoryBase: "https://github.com/dryerjs/docs",
+  docsRepositoryBase: "https://github.com/dryerjs/docs/blob/master",
   footer: {
     text: "DryerJS © 2023 - All rights reserved.",
   },
@@ -20,7 +20,7 @@ const config: DocsThemeConfig = {
     return {
       titleTemplate: '%s – DryerJS'
     }
-  }
+  },
 };
 
 export default config;
