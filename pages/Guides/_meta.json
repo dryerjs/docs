@@ -1,12 +1,12 @@
 {
-  "property": {
-    "title": "Property",
+  "crud-apis": {
+    "title": "CRUD APIs",
     "theme": {
       "breadcrumb": false
     }
   },
-  "crud-apis": {
-    "title": "CRUD APIs",
+  "property": {
+    "title": "Property",
     "theme": {
       "breadcrumb": false
     }
