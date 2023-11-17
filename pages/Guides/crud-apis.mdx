@@ -1,3 +1,112 @@
-# Bulk APIs
+import { Callout } from 'nextra-theme-docs';
 
-Coming soon...
+# CRUD APIs
+
+With DryerJS, you can easily create CRUD APIs for your models.
+
+## Simple model
+
+Suppose you have a model called `Tag`:
+```ts
+import { Id, ObjectId, Property, Definition } from 'dryerjs';
+
+@Definition()
+export class Tag {
+  @Id()
+  id: ObjectId;
+
+  @Property()
+  name: string;
+}
+```
+
+> Remember to add it into the `definitions` array in the `DryerModule`.
+
+## Generated APIs
+
+Your generated CRUD APIs will be:
+
+### Create
+
+```graphql
+mutation {
+  createTag(input: { name: "Sale" }) {
+    id
+    name
+  }
+}
+```
+
+### Find one
+
+```graphql
+query {
+  tag(id: "000000000000000000000000") {
+    id
+    name
+  }
+}
+```
+
+If there is no tags with the given id, the API will return error with message: `No Tag found with ID: 000000000000000000000000`
+
+<Callout>
+  On Update and Remove APIs, find one will be called first to check if the document exists.
+</Callout>
+
+### Update
+
+```graphql
+mutation {
+  updateTag(input: {
+    id: "000000000000000000000000",
+    name: "SaleOff"
+  }) {
+    id
+    name
+  }
+}
+```
+
+### Remove
+    
+```graphql
+mutation {
+  removeTag(id: "000000000000000000000000") {
+    id
+    success
+  }
+}
+```
+
+### Paginate
+  
+```graphql
+query {
+  paginateTags(page: 1, limit: 10) {
+    id
+    name
+  }
+}
+```
+
+There will be `filter` and `sort` arguments which will be covered in the [Filter and Sort](/Guides/filter-and-sort) section.
+
+### Find all
+
+```graphql
+query {
+  allTags {
+    id
+    name
+  }
+}
+```
+
+> Warning: This query will return all documents in the collection. Use with caution. This API is not turned on by default. You can turn it on by adding `findAll` into `allowedApis` in the `@Definition` decorator.
+
+There will be `filter` and `sort` arguments which will be covered in the [Filter and Sort](/Guides/filter-and-sort) section.
+
+### Bulk APIs
+
+Bulk APIs is covered in the [Bulk APIs](/Guides/bulk-apis) section.
