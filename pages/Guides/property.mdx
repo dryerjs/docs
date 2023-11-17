@@ -1,3 +1,66 @@
 # Property
 
-Coming soon...
+## Default usage
+
+Below is the simplest property definition.
+
+```ts
+export class Tag {
+  @Property()
+  name: string;
+}
+```
+
+It is equivalent to:
+
+* `@Prop()` or `@Prop({ type: String })` with `@nest/mongoose`.
+* `@Field()` or `@Field(() => graphql.GraphQLString)` with `@nestjs/graphql`.
+
+> Field `name` is required on `CreateInputType` and `OutputType` but it is nullable on `UpdateInputType`.
+
+## Custom GraphQL type
+
+### Override inferred type
+
+We can specify a custom GraphQL type.
+
+```ts
+export class Product {
+  @Property({ type: () => graphql.GraphQLFloat })
+  weight: number;
+}
+```
+
+### Different GraphQL types for each purpose
+
+We can have different types with different options for `CreateInputType`, `UpdateInputType` and `OutputType`.
+
+The options on top level will be the default options for all types, and the options on `create`, `update` and `output` will override the default options for the corresponding type.
+
+```ts
+export class Product {
+  @Property({
+    type: () => graphql.GraphQLFloat,
+    create: { type: () => graphql.GraphQLInt, defaultValue: 0 },  
+    output: { nullable: true },
+    update: Skip,
+  })
+  weight: number;
+}
+```
+
+> `Skip` is a specify imported from `'dryerjs'`, if you put Skip on `create` `update` or `output` the property will not be generated for the corresponding type.
+
+## Custom Mongoose type
+
+By giving `db` field on `@Property` we can specify a custom Mongoose type and its options.
+
+```ts
+export class User {
+  @Property({ db: { unique: true } })
+  email: string;
+
+  @Property({ db: { type: Date } })
+  createdAt: Date;
+}
+```
