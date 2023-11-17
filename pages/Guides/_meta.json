@@ -1,6 +1,12 @@
 {
-  "field": {
-    "title": "Field",
+  "property": {
+    "title": "Property",
+    "theme": {
+      "breadcrumb": false
+    }
+  },
+  "crud-apis": {
+    "title": "CRUD APIs",
     "theme": {
       "breadcrumb": false
     }
@@ -11,7 +17,7 @@
       "breadcrumb": false
     }
   },
-  "relations": {
+  "Relations": {
     "title": "Relations",
     "theme": {
       "breadcrumb": false
