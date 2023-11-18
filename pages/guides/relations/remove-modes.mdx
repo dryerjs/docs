@@ -1,0 +1,30 @@
+import { Callout } from 'nextra-theme-docs';
+
+# Remove Modes
+
+It is complicated to remove documents with active relations. Sometime you might want to force remove a document, even if it has active relations, by ignoring the relations or by remove the related documents as well.
+DryerJS provides some modes to remove documents.
+
+```ts
+export enum RemoveMode {
+  RequiredCleanRelations = 'RequiredCleanRelations',
+  IgnoreRelations = 'IgnoreRelations',
+  CleanUpRelationsAfterRemoved = 'CleanUpRelationsAfterRemoved',
+}
+```
+
+- `RequiredCleanRelations`: This is the default mode. It will throw an error if the document has active relations.
+- `IgnoreRelations`: It will remove the document even if it has active relations and leave related documents as they are.
+- `CleanUpRelationsAfterRemoved`: It will remove the document and also try to remove the related documents.
+
+By default, only `RequiredCleanRelations` mode is enabled. To enabled other modes, you need to set the `removalConfig` in the `@Definition` decorator.
+
+```ts
+@Definition({
+  removalConfig: {
+    allowIgnoreRelationCheck: true,
+    allowCleanUpRelationsAfterRemoved: true,
+  },
+})
+export class Product {}
+```

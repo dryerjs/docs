@@ -24,7 +24,7 @@
     }
   },
   "filter-and-sort": {
-    "title": "Filter and Sort",
+    "title": "Filter & Sort",
     "theme": {
       "breadcrumb": false
     }
