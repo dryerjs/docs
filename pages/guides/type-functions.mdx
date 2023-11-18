@@ -19,7 +19,7 @@ export class AuthResolver {
 }
 ```
 
-# Other type functions
+## Other type functions
 
 * `CreateInputType`
 * `UpdateInputType`
@@ -29,3 +29,16 @@ export class AuthResolver {
 * `BulkCreateOutputType`
 * `BulkUpdateOutputType`
 * `BulkRemoveOutputType`
+
+## Use with Mapped types
+
+You can mix the `type functions` with NestJS `Mapped types` to create your own types.
+
+```ts
+@InputType()
+export class SignInInput extends Pick(CreateUserInput, ['email', 'password']) {}
+```
+
+There are `Partial`, `Pick`, `Omit`, `Intersection` and `Composition` mapped types available.
+
+Read more about [NestJS Mapped types](https://docs.nestjs.com/graphql/mapped-types).
