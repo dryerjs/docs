@@ -1,3 +1,88 @@
-# Bulk APIs
+import { Callout } from 'nextra-theme-docs';
 
-Coming soon...
+# HasOne
+
+Below is how you can define a `HasMany` relationship.
+
+
+```ts
+@Definition()
+export class Product {
+  @Id()
+  id: ObjectId;
+
+  @Property()
+  name: string;
+
+  @HasOne(() => FeatureImage, {
+    to: 'productId',
+    allowCreateWithin: true,
+  })
+  featureImage: Ref<FeatureImage>;
+}
+
+@Definition()
+export class FeatureImage {
+  @Id()
+  id: ObjectId;
+
+  @Property()
+  url: string;
+
+  @Property({ type: () => GraphQLObjectId })
+  productId: ObjectId;
+
+  @BelongsTo(() => Product, { from: 'productId' })
+  product: Product;
+}
+```
+
+<Callout>
+  `Ref` is a type function that is imported from `'dryerjs'`, not using `Ref` will result a `ReferenceError`
+</Callout>
+
+In the above example, we have defined a `HasMany` relationship between `Store` and `Product`. This means that a `Store` can have many `Products`.
+Because of that we have to define a `storeId` property on the `Product` class. This is the foreign key that will be used to identify which `Store` a `Product` belongs to.
+
+## Create API
+
+```graphql
+mutation {
+  createProduct(input: {
+    name: "Awsome Product",
+    featureImage: { url: "https://dryerjs.com/logo.png" }
+  }) {
+    id
+    name
+    featureImage {
+      id
+      url
+    }
+  }
+}
+```
+
+<Callout>
+  If you want <b>NOT</b> to allow create `featureImage` along with `product`, you can set `allowCreateWithin` to `false` in the options or just omit it.
+</Callout>
+
+## Resolve fields
+
+<Callout>
+  To prevent resolving the `featureImage` field, set `noPopulation` to `true`.
+</Callout>
+
+```ts
+@Definition()
+export class Product {
+  @HasOne(() => FeatureImage, {
+    to: 'productId',
+    noPopulation: true,
+  })
+  featureImage: Ref<FeatureImage>;
+}
+```
+
+## Ensure relationship
+
+By default, you cannot remove a `Product` if it has a `FeatureImage`. To allow remove that, you can set `skipRelationCheckOnRemove` to `true` in the options;
