@@ -45,7 +45,7 @@ Because of that we have to define a `storeId` property on the `Product` class. T
 ## Create API
 
 ```graphql
-mutation Mutation {
+mutation {
   createStore(input: {
     name: "Awsome Store 1",
     products: [
@@ -80,8 +80,8 @@ As you can see in the above example, we can get the `products` and `paginateProd
 
 ## Ensure relationship
 
-By default, you cannot create a `Product` with a `storeId` that does not exist. Also you cannot remove a `Store` if it has any `Products`.
+By default, you cannot remove a `Store` if it has any `Products`. To allow remove that, you can set `skipRelationCheckOnRemove` to `true` in the options;
 
-<Callout>
-  To allow remove a `Store` even if it has `Products`, you can set `skipRelationCheckOnRemove` to `true` in the options;
-</Callout>
+## Multi-level support
+
+Create API also supports multi-level relationship. For example, if you define `Product` has many `Variant`, then you can create a `Store` with `Products` and `Variants` in one go.
