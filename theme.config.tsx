@@ -18,8 +18,10 @@ const config: DocsThemeConfig = {
   primarySaturation: 100,
   useNextSeoProps() {
     return {
-      titleTemplate: '%s – DryerJS'
-    }
+      titleTemplate: "%s – DryerJS",
+      description:
+        "DryerJS, built on NestJS with Mongoose, is a robust tool for creating CRUD GraphQL APIs.",
+    };
   },
 };
 
