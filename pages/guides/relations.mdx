@@ -1,3 +1,5 @@
 # Relations
 
-We offer many Relations
+DryerJS offers `BelongsTo`, `HasMany`, `HasOne` and `ReferencesMany` relations.
+Using relations will extend functions on your GraphQL APIs. For example, you will be able to get all the `posts` of a `user` or create a `user` with `posts` in one request.
+It also adds validations to make sure the relations are valid. For example, you cannot create a `post` with a `userId` that does not exist.
