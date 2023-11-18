@@ -84,8 +84,18 @@ mutation {
 ```graphql
 query {
   paginateTags(page: 1, limit: 10) {
-    id
-    name
+    docs {
+      id
+      name
+    }
+    totalDocs
+    page
+    limit
+    totalPages
+    nextPage
+    hasPrevPage
+    prevPage
+    pagingCounter
   }
 }
 ```
