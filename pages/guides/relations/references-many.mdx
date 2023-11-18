@@ -1,3 +1,79 @@
-# Bulk APIs
+import { Callout } from 'nextra-theme-docs';
 
-Coming soon...
+# ReferencesMany
+
+Below is how you can define a `ReferencesMany` relationship.
+
+```ts
+@Definition()
+export class Tag {
+  @Id()
+  id: ObjectId;
+
+  @Property()
+  name: string;
+}
+
+@Definition()
+export class Product {
+  @Id()
+  id: ObjectId;
+
+  @Property()
+  name: string;
+
+  @Property({ type: () => [GraphQLObjectId] })
+  tagIds: ObjectId[];
+
+  @ReferencesMany(() => Tag, { from: 'tagIds', allowCreateWithin: true })
+  tags: Tag[];
+}
+```
+
+In the above example, we define a `Product` references many `Tag`. The `tagIds` field is used to store the `Tag` ids. The `tags` field is used to resolve the `Tag` objects. The difference between `ReferencesMany` and `HasMany` is that a `tag` can be referenced by multiple `products` whereas a `product` can only belong to one `store`.
+
+## Create API
+
+```graphql
+mutation {
+  createProduct(input: {
+    name: "Product 1"
+    tagIds: ["000000000000000000000000"]
+    tags: [
+      { name: "Tag 1" }
+    ]
+  }) {
+    id
+    name
+    tagIds
+    tags {
+      id 
+      name
+    }
+  }
+}
+```
+
+In this example, product will be created with 2 tags. One is the pre-existing tag with id `000000000000000000000000` and the other is a new tag with name `Tag 1`.
+
+<Callout>
+  If you want <b>NOT</b> to allow create `tags` along with `product`, you can set `allowCreateWithin` to `false` in the options or just omit it.
+</Callout>
+
+## Resolve fields
+
+<Callout>
+  To prevent resolving the `tags` field, set `noPopulation` to `true`.
+</Callout>
+
+```ts
+@Definition()
+export class Product {
+  @ReferencesMany(() => Tag, { from: 'tagIds', noPopulation: true })
+  tags: Tag[];
+}
+```
+
+## Ensure relationship
+
+By default, you cannot remove a `Store` if it has any `Products`. To allow remove that, you can set `skipRelationCheckOnRemove` to `true` in the options;
