@@ -35,12 +35,12 @@
       "breadcrumb": false
     }
   },
-  "hook": {
+  "authentication": {
     "theme": {
       "breadcrumb": false
     }
   },
-  "authentication": {
+  "hook": {
     "theme": {
       "breadcrumb": false
     }
