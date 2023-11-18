@@ -51,8 +51,8 @@
       "breadcrumb": false
     }
   },
-  "generated-types": {
-    "title": "Generated Types",
+  "type-functions": {
+    "title": "Type Functions",
     "theme": {
       "breadcrumb": false
     }

@@ -97,6 +97,11 @@ export interface Hook<T = any, Context = any> {
 }
 ```
 
+<Callout>
+  API `update` and `remove` use `findOne` under the hood so you might feel like `beforeFindOne` and `afterFindOne` are applied for `update` and `remove` too.
+  If your `context` cannot `findOne` a document, you will not be able to `update` and `remove` it.
+</Callout>
+
 ## Customize Context
 
 There is a `ctx` in every hook. By default, the value is an object which looks like below.

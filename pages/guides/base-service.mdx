@@ -29,6 +29,8 @@ class BaseService<T = any, Context = any> {
 Below is an example of how to inject `BaseService`
 
 ```ts
+import { BaseService, InjectBaseService } from 'dryerjs';
+
 type Context = { user: { id: ObjectId, role: 'admin' | 'user' } }
 
 @Injectable()

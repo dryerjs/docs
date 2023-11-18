@@ -1,0 +1,31 @@
+import { Callout } from 'nextra-theme-docs';
+
+# Type Functions
+
+## Example
+You can reuse type functions in your resolvers. The example below shows how to use `OutputType` in a resolver.
+
+```ts
+import { OutputType, BaseService, InjectBaseService } from 'dryerjs';
+
+@Resolver()
+export class AuthResolver {
+  constructor(@InjectBaseService(User) public userService: BaseService<User, Context>) {}
+
+  @Query(() => OutputType(User))
+  async whoAmI(@Ctx() ctx: Context) {
+    return await this.User.findById(ctx, { _id: ctx.user._id });
+  }
+}
+```
+
+# Other type functions
+
+* `CreateInputType`
+* `UpdateInputType`
+* `FilterType`
+* `SortType`
+* `PaginateOutputType`
+* `BulkCreateOutputType`
+* `BulkUpdateOutputType`
+* `BulkRemoveOutputType`
