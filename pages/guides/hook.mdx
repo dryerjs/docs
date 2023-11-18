@@ -1,3 +1,158 @@
-# Property
+import { Callout } from 'nextra-theme-docs';
 
-Coming soon...
+# Hook
+
+Hooks are the place that you can add your own code to the default behavior or DryerJS.
+Below is a example of a hook that will be called before a new Tag is created. If the tag already exists, it will throw an error.
+
+```ts
+@Hook(() => Tag)
+class TagHook implements Hook<Tag> {
+  constructor(@InjectModel('Tag') private readonly Tag: Model<Tag>) {}
+  
+  async beforeCreate({ input }: BeforeCreateHookInput) {
+    const existingTag = await this.Tag.findOne({ name: input.name });
+    if (existingTag) throw new Error(`Tag with name ${input.name} already exists`);
+  }
+}
+
+@Module({
+  // other configs
+  imports: [
+    DryerModule.register({
+      hooks: [TagHook],
+      definitions: [Tag],
+    }),
+  ],
+})
+export class AppModule {}
+```
+
+## Interface
+
+Below is the hook interface. You can implement any of the methods you want.
+
+```ts
+export interface Hook<T = any, Context = any> {
+  beforeCreate?(input: { ctx: Context; input: Partial<T>; definition: Definition }): Promise<void>;
+
+  afterCreate?(input: { ctx: Context; input: Partial<T>; created: T; definition: Definition }): Promise<void>;
+
+  beforeUpdate?(input: {
+    ctx: Context;
+    input: Partial<T>;
+    beforeUpdated: T;
+    definition: Definition;
+  }): Promise<void>;
+
+  afterUpdate?(input: {
+    ctx: Context;
+    input: Partial<T>;
+    updated: T;
+    beforeUpdated: T;
+    definition: Definition;
+  }): Promise<void>;
+
+  beforeFindOne?(input: { ctx: Context; filter: FilterQuery<T>; definition: Definition }): Promise<void>;
+
+  afterFindOne?(input: {
+    ctx: Context;
+    filter: FilterQuery<T>;
+    result: T;
+    definition: Definition;
+  }): Promise<void>;
+
+  beforeRemove?(input: {
+    ctx: Context;
+    beforeRemoved: T;
+    definition: Definition;
+    options: RemoveOptions;
+  }): Promise<void>;
+
+  afterRemove?(input: {
+    ctx: Context;
+    removed: T;
+    definition: Definition;
+    options: RemoveOptions;
+  }): Promise<void>;
+
+  beforeFindMany?(input: {
+    ctx: Context;
+    filter: FilterQuery<T>;
+    sort: object;
+    limit?: number;
+    page?: number;
+    definition: Definition;
+  }): Promise<void>;
+
+  afterFindMany?(input: {
+    ctx: Context;
+    filter: FilterQuery<T>;
+    sort: object;
+    items: T[];
+    limit?: number;
+    page?: number;
+    definition: Definition;
+  }): Promise<void>;
+}
+```
+
+There is a `ctx` in every hook. By default, the value is an object which looks like `{ req: express.Request }`;
+You will learn how to customize the context in the [Authentication](/guides/authentication#customize-context).
+
+## Possible use cases
+
+### beforeCreate & beforeUpdate
+
+* Add custom input validation (e.g. check if email is used so we can throw a better error)
+* Modify the input base on context (e.g. add `userId` from context to input so that the user does not need to input it)
+
+### beforeFindOne & beforeFindMany
+
+* Validate filter (e.g. check if the user has permission to see the data)
+* Modify filter base on context (e.g. add `userId` from context to filter so that the user can only see their own data)
+
+### afterFindOne & afterFindMany
+
+* Validate the returned data (e.g. check if the user has permission to see the data)
+* Modify the returned data base on context (e.g. remove some fields that the user does not have permission to see)
+
+### afterCreate & afterUpdate & afterRemove
+
+* Emit events (e.g. send email to user after they register)
+
+## General Hook
+
+You can also create a general hook that will be called for all models.
+
+```ts
+@Hook(() => AllDefinitions)
+class GeneralHook implements Hook {
+  async beforeCreate({ input }: BeforeCreateHookInput) {
+    console.log(`Before create ${definition.name}`);
+  }
+}
+```
+
+<Callout>
+  `AllDefinitions` is a special value that you can use to indicate that the hook will be called for all models which can be imported from `'dryerjs'`.
+</Callout>
+
+## Default hook
+
+DryerJS has a default hook that will be called for all models.
+It mostly used for checking relations before write operations.
+It also remove related documents when remove mode is `CleanUpRelationsAfterRemoved`. See [Remove Mode](/guides/relations/remove-modes) for more details.
+
+You can skip the default hook by setting `skipDefaultHookMethods` in `@Definition` decorator.
+
+```ts
+@Definition({
+  skipDefaultHookMethods: ['beforeCreate', 'beforeUpdate', 'beforeRemove'],
+})
+class Tag {}
+```
+
+<Callout>
+  If you want to ignore all default hooks, you can set `{ skipDefaultHookMethods: ['all'] }`
+</Callout>
