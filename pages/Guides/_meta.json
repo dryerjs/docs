@@ -17,8 +17,41 @@
       "breadcrumb": false
     }
   },
-  "Relations": {
+  "filter-and-sort": {
+    "title": "Filter and Sort",
+    "theme": {
+      "breadcrumb": false
+    }
+  },
+  "relations": {
     "title": "Relations",
+    "theme": {
+      "breadcrumb": false
+    }
+  },
+  "context": {
+    "title": "Context",
+    "theme": {
+      "breadcrumb": false
+    }
+  },
+  "hook": {
+    "theme": {
+      "breadcrumb": false
+    }
+  },
+  "authentication": {
+    "theme": {
+      "breadcrumb": false
+    }
+  },
+  "base-service": {
+    "title": "Base Service",
+    "theme": {
+      "breadcrumb": false
+    }
+  },
+  "mongoose-schema": {
     "theme": {
       "breadcrumb": false
     }

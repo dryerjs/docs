@@ -1,3 +1,319 @@
+import { Callout } from 'nextra-theme-docs';
+
 # Embedded
 
-Coming soon...
+You can declare a property as embedded to embed a document inside another document.
+
+```ts
+@Definition()
+export class Book {
+  @Id()
+  id: ObjectId;
+
+  @Property()
+  name: string;
+}
+
+@Definition()
+export class Author {
+  @Id()
+  id: ObjectId;
+
+  @Property()
+  name: string;
+
+  @Embedded(() => Book)
+  books: Book[];
+}
+```
+
+<Callout>
+You should not include embedded definitions in the `definitions` array of the `DryerModule.register` method.
+</Callout>
+
+```ts
+// app.module.ts
+@Module({
+  imports: [
+    // will be other imports as well
+    DryerModule.register({
+      definitions: [Author],
+    }),
+  ],
+})
+export class AppModule {}
+```
+
+## Generated APIs
+### Create API
+
+You will be able to create an author with books.
+
+```graphql
+mutation {
+  createAuthor(input: {
+    name: "Joanne Rowling"
+    books: [
+      { name: "Harry Potter and the Philosopher's Stone" }
+      { name: "Harry Potter and the Chamber of Secrets" }
+    ]
+  }) {
+    id
+    name
+    books {
+      id
+      name
+    }
+  }
+}
+```
+
+### Update API
+
+You will be able to update author and books as well.
+
+```graphql
+mutation {
+  createAuthor(input: {
+    id: "000000000000000000000000",
+    name: "J. K. Rowling"
+    books: [
+      {
+        id: "111111111111111111111111",
+        name: "Harry Potter and the Philosopher's Stone"
+      }
+    ]
+  }) {
+    id
+    name
+    books {
+      id
+      name
+    }
+  }
+}
+```
+
+<Callout>
+If there are more books in the database than the ones you are sending, the extra books will be removed. To avoid this behavior you can include all the books in the update or use the `updateAuthorBooks` API.
+</Callout>
+
+### Create embedded API
+
+```graphql
+  mutation {
+    createAuthorBooks(
+      authorId: '000000000000000000000000'
+      inputs: [
+        { name: "Harry Potter and the Prisoner of Azkaban" }
+        { name: "Harry Potter and the Goblet of Fire" }
+      ]
+    ) {
+      id
+      name
+    }
+  }
+```
+
+<Callout>
+Only newly created books will be returned.
+</Callout>
+
+
+### Update embedded API
+
+```graphql
+  mutation {
+    updateAuthorBooks(
+      authorId: '000000000000000000000000'
+      inputs: [
+        { id: '111111111111111111111111', name: "Harry Potter and the Prisoner of Azkaban" }
+        { id: '222222222222222222222222', name: "Harry Potter and the Goblet of Fire" }
+      ]
+    ) {
+      id
+      name
+    }
+  }
+```
+
+<Callout>
+Only books with listed ids will be returned, other books will stay the same but not returned.
+</Callout>
+
+### Remove embedded API
+
+```graphql
+  mutation {
+    removeAuthorBooks(
+      authorId: '000000000000000000000000'
+      bookIds: [
+        '111111111111111111111111'
+        '222222222222222222222222'
+      ]
+    ) {
+      success
+    }
+  }
+```
+
+### Find one embedded API
+
+```graphql
+  query {
+    authorBook(
+      authorId: '000000000000000000000000'
+      bookId: '111111111111111111111111'
+    ) {
+      id
+      name
+    }
+  }
+```
+
+### Find all embedded API
+
+```graphql
+  query {
+    authorBooks(
+      authorId: '000000000000000000000000'
+    ) {
+      id
+      name
+    }
+  }
+```
+
+## Whitelist APIs
+
+You can also whitelist the APIs you want to allow for the embedded document. By default, all APIs are allowed.
+
+```ts
+export class Author {
+  @Embedded(() => Book, {
+    allowApis: ['create', 'update', 'remove', 'findOne', 'findAll'],
+  })
+  books: Book[];
+}
+```
+
+
+## Object Embbeded
+
+You can also embed an object. There will be no embedded APIs for this case, but you will be able to create and update the object from the parent document.
+
+```ts
+@Definition()
+class Brand {
+  @Property()
+  name: string;
+}
+
+@Definition()
+export class Car {
+  @Id()
+  id: ObjectId;
+
+  @Property()
+  name: string;
+
+  @Embedded(() => Brand)
+  brand: Brand;
+}
+```
+
+## Multi-level Embedded
+
+You can embed documents inside other embedded documents but the embedded APIs will only work for the first level.
+As on the example below, Author will have embedded Books and Books will have embedded Reviews.
+
+```ts
+@Definition()
+export class Review {
+  @Id()
+  id: ObjectId;
+
+  @Property()
+  content: string;
+}
+
+@Definition()
+export class Book {
+  @Id()
+  id: ObjectId;
+
+  @Property()
+  name: string;
+
+  @Embedded(() => Review)
+  reviews: Review[];
+}
+
+@Definition({ allowedApis: '*' })
+export class Author {
+  @Id()
+  id: ObjectId;
+
+  @Property()
+  name: string;
+
+  @Embedded(() => Book)
+  books: Book[];
+}
+```
+
+## Authentication
+
+<Callout>
+You should read the [Authentication](/docs/authentication) section before this one.
+</Callout>
+
+You can add any decorators for embedded APIs including Authentication decorators.
+
+```ts
+import { UseGuards } from '@nestjs/common';
+
+@Definition()
+export class Author {
+  @Embedded(() => Book, { resolverDecorators: { remove: UseGuards(UserOnly) } })
+  books: Book[];
+}
+```
+
+The example above will add the `@UseGuards(UserOnly)` decorator to the `removeAuthorBooks` resolver.
+You can add decorators for other APIs as well. The `resolverDecorators` object has the following structure:
+
+```ts
+resolverDecorators?: {
+  default?: MethodDecorator | MethodDecorator[];
+  write?: MethodDecorator | MethodDecorator[];
+  read?: MethodDecorator | MethodDecorator[];
+  findOne?: MethodDecorator | MethodDecorator[];
+  findAll?: MethodDecorator | MethodDecorator[];
+  remove?: MethodDecorator | MethodDecorator[];
+  update?: MethodDecorator | MethodDecorator[];
+  create?: MethodDecorator | MethodDecorator[];
+};
+```
+
+You can use `default` to add decorators to all APIs, `write` to add decorators to all write APIs (`create`, `update` and `remove`), `read` to add decorators to all read APIs (`findOne` and `findAll`). There is a priority order for the fields. For example, `remove` will have priority over `write` and `write` will have priority over `default`.
+
+## Custom Schema
+
+There is a `onSchema` option that you can use to customize the schema of the embedded document.
+
+```ts
+import { UseGuards } from '@nestjs/common';
+
+@Definition()
+export class Author {
+  @Embedded(() => Book, {
+    onSchema: (schema) => {
+      schema.statics.findByName = function(name) {
+        return this.find({ name: new RegExp(name, 'i') });
+      }
+    }
+  })
+  books: Book[];
+}
+```
