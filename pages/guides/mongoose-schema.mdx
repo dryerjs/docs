@@ -1,3 +1,41 @@
-# Bulk APIs
+import { Callout } from 'nextra-theme-docs';
 
-Coming soon...
+# Mongoose Schema
+
+`DryerJS` generate `mongoose` schema from class definition. 
+
+## Customization
+
+You can override the default behavior by using `@Schema` decorator.
+
+```ts
+@Schema({ name: 'tag' })
+@Definition()
+class Tag {}
+```
+
+You can also use `onSchema` option on `@DryerModule.register`.
+
+```ts
+// app.module.ts
+@DryerModule.register({
+  definitions: [Tag],
+  onSchema: (schema, definition) => {
+    schema.set('timestamps', true);
+  },
+});
+```
+
+## Index decorator
+
+
+
+```ts
+@Index({ name: 1 }, { unique: true })
+@Definition()
+class Tag {}
+```
+
+<Callout>
+  `Index` is imported from `'dryerjs'`.
+</Callout>
