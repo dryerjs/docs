@@ -18,7 +18,9 @@ It is equivalent to:
 * `@Prop()` or `@Prop({ type: String })` with `@nest/mongoose`.
 * `@Field()` or `@Field(() => graphql.GraphQLString)` with `@nestjs/graphql`.
 
-> Field `name` is required on `CreateInputType` and `OutputType` but it is nullable on `UpdateInputType`.
+<Callout>
+By default, `name` is required on `CreateInputType` and `OutputType` but is nullable on `UpdateInputType`.
+</Callout>
 
 ## Custom GraphQL type
 
@@ -51,7 +53,9 @@ export class Product {
 }
 ```
 
-> `Skip` is a specify imported from `'dryerjs'`, if you put Skip on `create` `update` or `output` the property will not be generated for the corresponding type.
+<Callout>
+`Skip` is a specify imported from `'dryerjs'`, if you put Skip on `create` `update` or `output` the property will not be generated for the corresponding type.
+</Callout>
 
 ## Custom Mongoose type
 
