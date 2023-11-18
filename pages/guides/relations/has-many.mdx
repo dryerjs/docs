@@ -1,3 +1,87 @@
-# Bulk APIs
+import { Callout } from 'nextra-theme-docs';
 
-Coming soon...
+# HasMany
+
+Below is how you can define a `HasMany` relationship.
+
+```ts
+@Definition()
+export class Store {
+  @Id()
+  id: ObjectId;
+
+  @Property()
+  name: string;
+
+  @HasMany(() => Product, {
+    to: 'storeId',
+    allowCreateWithin: true,
+    allowFindAll: true,
+    allowPaginate: true,
+  })
+  products: Product[];
+}
+
+@Definition()
+export class Product {
+  @Id()
+  id: ObjectId;
+
+  @Property()
+  name: string;
+
+  @Property({ type: () => GraphQLObjectId })
+  storeId: ObjectId;
+}
+```
+
+<Callout>
+  `GraphQLObjectId` is a custom scalar that is imported from `'dryerjs'`
+</Callout>
+
+In the above example, we have defined a `HasMany` relationship between `Store` and `Product`. This means that a `Store` can have many `Products`.
+Because of that we have to define a `storeId` property on the `Product` class. This is the foreign key that will be used to identify which `Store` a `Product` belongs to.
+
+## Create API
+
+```graphql
+mutation Mutation {
+  createStore(input: {
+    name: "Awsome Store 1",
+    products: [
+      { name: "Product 1" }
+      { name: "Product 2" }
+    ]
+  }) {
+    id
+    name
+    products {
+      id
+      name
+    }
+    paginateProducts {
+      docs {
+        id
+        name
+      }
+      totalDocs
+    }
+  }
+}
+```
+
+<Callout>
+  If you want <b>NOT</b> to allow create products along with store, you can set `allowCreateWithin` to `false` in the options or just omit it.
+</Callout>
+
+## Resolve fields
+
+As you can see in the above example, we can get the `products` and `paginateProducts` fields on the `Store` type. You can suppress these fields by setting `allowFindAll` and `allowPaginate` to `false` in the options or just omit them.
+
+## Ensure relationship
+
+By default, you cannot create a `Product` with a `storeId` that does not exist. Also you cannot remove a `Store` if it has any `Products`.
+
+<Callout>
+  To allow remove a `Store` even if it has `Products`, you can set `skipRelationCheckOnRemove` to `true` in the options;
+</Callout>

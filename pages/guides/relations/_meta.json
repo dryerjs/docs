@@ -1,0 +1,26 @@
+{
+  "has-many": {
+    "title": "HasMany",
+    "theme": {
+      "breadcrumb": false
+    }
+  },
+  "belongs-to": {
+    "title": "BelongsTo",
+    "theme": {
+      "breadcrumb": false
+    }
+  },
+  "has-one": {
+    "title": "HasOne",
+    "theme": {
+      "breadcrumb": false
+    }
+  },
+  "references-many": {
+    "title": "ReferencesMany",
+    "theme": {
+      "breadcrumb": false
+    }
+  }
+}
