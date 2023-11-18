@@ -1,3 +1,86 @@
+import { Callout } from 'nextra-theme-docs';
+
 # Authentication
 
-## Customize Context
+You can authorize your generated APIs by defining `resolverDecorators` in your `@Definition`.
+Below is an example of using `NestJS` `Guard` to authorize your APIs.
+
+```ts
+import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
+import { GqlExecutionContext } from '@nestjs/graphql';
+
+@Injectable()
+export class AdminGuard implements CanActivate {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    return GqlExecutionContext.create(context).getContext().req.header('user-role') === 'admin';
+  }
+}
+
+@Injectable()
+export class UserGuard implements CanActivate {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    const role = GqlExecutionContext.create(context).getContext().req.header('user-role');
+    return role === 'admin' || role === 'user';
+  }
+}
+
+@Definition({
+  resolverDecorators: {
+    create: [UseGuards(AdminOnly)],
+    read: [UseGuards(UserOnly)],
+  }
+})
+class Announcement {}
+```
+
+The example above will:
+
+* Get user role from `user-role` header
+* Only allow `admin` to create `Announcement`
+* Only allow `admin` and `user` to read (`findOne`, `findAll` and `paginate`) `Announcement`
+
+You can use `default`, `write`, `read` to reduce the amount of decorators you need to write.
+More specific decorators will override less specific decorators.
+Below is the definition of `resolverDecorators`:
+
+```ts
+  resolverDecorators?: {
+    default?: MethodDecorator | MethodDecorator[];
+    write?: MethodDecorator | MethodDecorator[];
+    read?: MethodDecorator | MethodDecorator[];
+    findOne?: MethodDecorator | MethodDecorator[];
+    list?: MethodDecorator | MethodDecorator[];
+    findAll?: MethodDecorator | MethodDecorator[];
+    paginate?: MethodDecorator | MethodDecorator[];
+    remove?: MethodDecorator | MethodDecorator[];
+    update?: MethodDecorator | MethodDecorator[];
+    create?: MethodDecorator | MethodDecorator[];
+    bulkCreate?: MethodDecorator | MethodDecorator[];
+    bulkUpdate?: MethodDecorator | MethodDecorator[];
+    bulkRemove?: MethodDecorator | MethodDecorator[];
+  }
+```
+
+<Callout>
+  `DryerJS` totally relies on `NestJS` to implement Authentication & Authentication. Learn more:
+  * [NestJS Guard](https://docs.nestjs.com/guards#guards)
+  * [NestJS Authentication](https://docs.nestjs.com/security/authentication)
+  * [NestJS Authorization](https://docs.nestjs.com/security/authorization)
+</Callout>
+
+## Other decorators
+
+`resolverDecorators` is not for authentication only. You can use it to add other decorators to your resolvers.
+
+```ts
+import { UseInterceptors } from '@nestjs/common';
+
+@Definition({
+  resolverDecorators: {
+    default: [UseInterceptors(LoggingInterceptor)],
+  }
+})
+class Announcement {}
+```
+
+> You can find LoggingInterceptor implementation [here](https://docs.nestjs.com/interceptors#aspect-interception)
