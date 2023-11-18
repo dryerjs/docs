@@ -110,3 +110,19 @@ There will be `filter` and `sort` arguments which will be covered in the [Filter
 ### Bulk APIs
 
 Bulk APIs is covered in the [Bulk APIs](/Guides/bulk-apis) section.
+
+### Whitelist APIs
+
+You can whitelist APIs by adding them into the `allowedApis` array in the `@Definition` decorator.
+
+```ts
+@Definition({
+  allowedApis: ['paginate', 'create', 'update', 'findOne', 'remove', 'findAll', 'bulkCreate', 'bulkUpdate', 'bulkRemove'],
+})
+export class Tag {}
+```
+
+<Callout>
+You can use `*` for all APIs or `essentials` for the essential APIs (`create`, `update`, `findOne`, `remove`, `paginate`).
+The default value is `essentials`.
+</Callout>

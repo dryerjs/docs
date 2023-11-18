@@ -8,8 +8,8 @@
       "toc": false 
     }
   },
-  "Guides": {},
-  "Recipes": {},
+  "guides": { "title": "Guides" },
+  "recipes": { "title": "Recipes" },
   "cheat-sheet": {},
   "contact": {
     "title": "Contact ↗",
