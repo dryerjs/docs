@@ -97,8 +97,68 @@ export interface Hook<T = any, Context = any> {
 }
 ```
 
-There is a `ctx` in every hook. By default, the value is an object which looks like `{ req: express.Request }`;
-You will learn how to customize the context in the [Authentication](/guides/authentication#customize-context).
+## Customize Context
+
+There is a `ctx` in every hook. By default, the value is an object which looks like below.
+```ts
+{ req: express.Request }
+```
+
+### How NestJS passing context
+
+> You can skip this sub-section if you are familiar with NestJS
+
+In NestJS world, it's common practice to attach properties to the `request`.
+In side your `Guard`, you can add `user` to `req`,
+and then create a custom parameter to use it in controllers or resolvers:
+
+```ts
+@Injectable()
+export class MustBeUser implements CanActivate {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    const { req } = GqlExecutionContext.create(context).getContext();
+    // getUserFromReq is a function that will get user from req
+    // commonly it will parse a JWT token from header
+    const user = await getUserFromReq(req);
+    req.user = user;
+  }
+}
+
+export const Ctx = createParamDecorator((_data: unknown, ctx: ExecutionContext) => {
+  return GqlExecutionContext.create(ctx).getContext().req.user || null;
+});
+
+@Resolver(() => Tag)
+export class TagResolver {
+  @Query(() => Tag)
+  async allTags(@Ctx() ctx: User) {
+    return this.tagService.findMany({ userId: ctx.id });
+  }
+}
+```
+
+### Usage on DryerJS
+
+You can set the parameter decorator that returns the context object when calling `DryerModule.register`.
+
+```ts
+export const Ctx = createParamDecorator((_data: unknown, ctx: ExecutionContext) => {
+  return GqlExecutionContext.create(ctx).getContext().req.user || null;
+});
+
+// app.module.ts
+@Module({
+  imports: [
+    // other imports
+    DryerModule.register({
+      definitions: [Tag, User],
+      contextDecorator: Ctx,
+    }),
+  ],
+})
+export class AppModule {}
+
+```
 
 ## Possible use cases
 
@@ -148,11 +208,15 @@ You can skip the default hook by setting `skipDefaultHookMethods` in `@Definitio
 
 ```ts
 @Definition({
-  skipDefaultHookMethods: ['beforeCreate', 'beforeUpdate', 'beforeRemove'],
+  skipDefaultHookMethods: [
+    'beforeCreate',
+    'beforeUpdate',
+    'beforeRemove',
+  ],
 })
 class Tag {}
 ```
 
 <Callout>
-  If you want to ignore all default hooks, you can set `{ skipDefaultHookMethods: ['all'] }`
+  If you want to ignore default hook completely, you can set `{ skipDefaultHookMethods: ['all'] }`
 </Callout>
