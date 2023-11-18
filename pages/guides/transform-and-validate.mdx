@@ -1,0 +1,35 @@
+import { Callout } from 'nextra-theme-docs';
+
+# Transform & Validate
+
+## Usage
+
+```ts
+import { Property, Thunk } from 'dryerjs';
+import { MaxLength } from 'class-validator';
+import { MaxLength } from 'class-validator';
+
+export class Tag {
+  @Thunk(MaxLength(100), { scopes: 'input' })
+  @Thunk(Transform(({ value }) => value.trim()))
+  @Thunk(Transform(({ value }) => value.toLowerCase()), { scopes: 'output' })
+  @Property()
+  name: string;
+}
+```
+
+DryerJS uses NestJS's approach on transforming and validating data which uses `class-validator` and `class-transformer` under the hood.
+Since we use these decorators in other generated classes, we need to preserve them in the `@Thunk` function.
+
+<Callout>
+Using `@Transform` directly on the property will <b>NOT</b> work
+</Callout>
+
+## Scope
+
+You can pass the `scopes` option to the `@Thunk` decorator to specify which scopes the decorator should be applied to.
+`scopes` can be `input`, `create`, `update`, `output` or `all`. Scope `input` will be applied to both `create` and `update` scopes. If you don't specify any scopes, the decorator will be applied to all scopes.
+
+```ts
+export type ThunkScope = 'all' | 'create' | 'update' | 'input' | 'output';
+```
