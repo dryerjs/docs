@@ -28,3 +28,56 @@ By default, only `RequiredCleanRelations` mode is enabled. To enabled other mode
 })
 export class Product {}
 ```
+
+## Error Handling
+
+This is only for `CleanUpRelationsAfterRemoved`.
+
+DryerJS will try to remove the related documents after the main document is removed with `CleanUpRelationsAfterRemoved` mode.
+The operation is not `awaited` with the main operation.
+Meaning that the main operation can be removed and respond as successful to the client but the related documents removal can fail.
+The most possible reason is some [hooks](/guides/hook) for the related documents are throwing an error. You would want to response to the error.
+You can do that by providing a handler for the error.
+
+```ts
+@Injectable()
+class FailHandler implements FailCleanUpAfterRemoveHandler {
+  async handleItem(input: HandleItemInput, error: Error): Promise<void> {}
+  async handleAll(input: HandleAllInput, error: Error): Promise<void> {}
+}
+
+@Module({
+  // other configs
+  providers: [{
+    provide: FAIL_CLEAN_UP_AFTER_REMOVE_HANDLER,
+    useClass: FailHandler,
+  }],
+})
+export class AppModule {}
+```
+
+`DryerJS` will be using the `FailCleanUpAfterRemoveHandler` in a loop, below psuedo code shows how it is used.
+
+```ts
+  private async cleanUpRelationsAfterRemoved(input: AfterRemoveHookInput) {
+    try {
+      for (const relatedDocument of relatedDocuments) {
+        try {
+          await relatedDocument.remove();
+        } catch (error) {
+          await this.errorHandler.handleItem(input, error);  
+        }
+      }
+    } catch (error) {
+      await this.errorHandler.handleAll(input, error);  
+    }
+  }
+```
+
+From that, if your `handleItem` method does not throw an error, the loop will continue to remove the next related document.
+If it throws an error, the loop will stop and the `handleAll` method will be called.
+
+If you do not provide a handler, `DryerJS` will throw error when the related documents removal fails.
+Which will stop removing the chain of removing the related documents.
+
+Detail implementation can be found [here](https://github.com/dryerjs/dryerjs/blob/master/lib/default.hook.ts) on the `#cleanUpRelationsAfterRemoved` method.
