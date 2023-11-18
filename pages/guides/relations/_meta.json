@@ -22,5 +22,11 @@
     "theme": {
       "breadcrumb": false
     }
+  },
+  "remove-modes": {
+    "title": "Remove modes",
+    "theme": {
+      "breadcrumb": false
+    }
   }
 }
