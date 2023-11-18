@@ -1,0 +1,80 @@
+import { Callout } from 'nextra-theme-docs';
+
+# Base Service
+
+You can inject `BaseService` into `Hooks`, other `Services`, or `Resolvers`. `BaseService` can be think of as a wrapper of `mongoose` `Model`,
+it provides basic CRUD operations with `context` and `Hooks`.
+
+## Interface
+
+Below is the type of `BaseService`, from that you can see the methods and their parameters.
+
+```ts
+class BaseService<T = any, Context = any> {
+    create(ctx: Context, input: Partial<T>): Promise<T>;
+    update(ctx: Context, input: Partial<T> & { id: ObjectId }): Promise<T>;
+    findOne(ctx: Context, filter: mongoose.FilterQuery<T>): Promise<T>;
+    findAll(ctx: Context, filter: mongoose.FilterQuery<T>, sort: object): Promise<T[]>;
+    remove(ctx: Context, id: ObjectId, options?: RemoveOptions): Promise<SuccessResponse>;
+    paginate(ctx: Context, filter: FilterQuery<T>, sort: object, page: number, limit: number): PaginateResult;
+}
+```
+
+<Callout>
+  `update` and `remove` methods use `findOne` under the hood.
+</Callout>
+
+## Inject BaseService
+
+Below is an example of how to inject `BaseService`
+
+```ts
+type Context = { user: { id: ObjectId, role: 'admin' | 'user' } }
+
+@Injectable()
+class AuthService {
+  constructor(@InjectBaseService(User) public userService: BaseService<User, Context>) {}
+
+  async refreshToken(ctx: Context) {
+    const user = await this.userService.findOne(ctx, { _id: ctx.user.id });
+    return getTokenFromUser(user);
+  }
+}
+```
+
+## Use Mongoose Model
+
+`BaseService` only covers the basic CRUD operations with context, if you want to use more advanced features or context free,
+you can use `mongoose` `Model` directly.
+
+```ts
+@Injectable()
+class AuthService {
+  constructor(@InjectModel(User) public User: PaginateModel<User>) {}
+
+  async isEmailTaken(email: string) {
+    return await this.User.exists({ email });
+  }
+}
+```
+
+## Context object
+
+`Context` normally comes from the `Resolvers`, but you can also create your own context object to pass into `BaseService` methods.
+
+```ts
+@Injectable()
+class AuthService {
+  async cron() {
+    const adminContext: Context = { id: '000000000000000000000000', role: 'admin' };
+    const oneYearAgo = new Date(Date.now() - 365 * 86400 * 1000);
+    const users = await this.userService.findAll(ctx, { lastLoggedInAt: { $lt: oneYearAgo } });
+    for (const user of users) {
+      await this.userService.update(adminContext, { id: user.id, status: 'inactive' });
+    }
+  }
+}
+```
+
+Compare with using `mongoose` `Model` directly, calling `update` method with `BaseService` will trigger `beforeUpdate` and `afterUpdate` hooks.
+Which could be extremely important if you have some logic in the hooks.
