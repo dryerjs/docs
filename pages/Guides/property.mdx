@@ -1,3 +1,5 @@
+import { Callout } from 'nextra-theme-docs';
+
 # Property
 
 ## Default usage
@@ -64,3 +66,7 @@ export class User {
   createdAt: Date;
 }
 ```
+
+<Callout>
+You can also skip db field by giving `db: Skip` so that it will ignored by the database.
+</Callout>

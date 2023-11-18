@@ -17,6 +17,12 @@
       "breadcrumb": false
     }
   },
+  "transform-and-validate": {
+    "title": "Transform & Validate",
+    "theme": {
+      "breadcrumb": false
+    }
+  },
   "filter-and-sort": {
     "title": "Filter and Sort",
     "theme": {

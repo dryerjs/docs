@@ -1,3 +1,127 @@
-# Property
+import { Callout, Collapse } from 'nextra-theme-docs';
 
-Coming soon...
+# Filter & Sort
+
+You can use the `@Filterable` and `@Sortable` decorators to enable filtering and sorting on your entities.
+
+```ts
+@Definition()
+export class Customer {
+  @Id()
+  id: ObjectId;
+
+  @Filterable(() => graphql.GraphQLString, { operators: ['regex'] })
+  @Sortable()
+  @Property()
+  name: string;
+
+  @Filterable(() => graphql.GraphQLString, {
+    operators: ['contains', 'notContains', 'eq', 'in', 'notEq', 'notIn']
+  })
+  @Sortable()
+  @Property({ nullable: true, db: { unique: true } })
+  email: string;
+
+  @Filterable(() => graphql.GraphQLInt, {
+    operators: ['gte', 'gt', 'lte', 'lt', 'exists']
+  })
+  @Property({ nullable: true })
+  numberOfOrders?: number;
+
+  @Filterable(() => GraphQLObjectId, { operators: ['eq', 'in'] })
+  @Property({ type: () => GraphQLObjectId, nullable: true })
+  countryId: ObjectId;
+}
+```
+
+## Customization
+
+You can pass the `operators` option to the `@Filterable` decorator to specify which operators should be available for the field. The following operators are available:
+
+```ts
+export type FilterOperator =
+  | 'eq'
+  | 'in'
+  | 'notEq'
+  | 'notIn'
+  | 'contains'
+  | 'notContains'
+  | 'gt'
+  | 'gte'
+  | 'lt'
+  | 'lte'
+  | 'regex'
+  | 'notRegex'
+  | 'all'
+  | 'exists';
+```
+
+## Generated API
+
+You will be able to use `filter` and `sort` on your `paginate` and `findAll` queries.
+
+```graphql
+query {
+  paginateCustomers(
+    page: 1,
+    limit: 10,
+    sort: { numberOfOrders: DESC },
+    filter: {
+      email: { contains: "gmail" },
+    }
+  ) {
+    docs {
+      email
+        numberOfOrders
+      }
+    totalDocs
+  }
+}
+```
+
+More sample calls could be found [here](https://github.com/dryerjs/dryerjs/blob/master/e2e/paginate.spec.ts)
+
+## Text Search
+
+You can enable text search by adding. Be aware that you have to create text index first.
+
+```ts
+@Index({ name: 'text' })
+@Definition({
+  allowedApis: '*',
+  enableTextSearch: true,
+})
+export class Customer {
+  @Id()
+  id: ObjectId;
+
+  @Filterable(() => graphql.GraphQLString, { operators: allOperators })
+  @Sortable()
+  @Property()
+  name: string;
+}
+```
+
+```graphql
+query {
+  paginateCustomers(
+    page: 1,
+    limit: 10,
+    filter: {
+      search: 'John'
+    }
+  ) {
+    docs {
+      email
+        numberOfOrders
+      }
+    totalDocs
+  }
+}
+```
+
+Learn more about text search here: [MongoDB Text Search](https://docs.mongodb.com/manual/text-search/)
+
+<Callout>
+When search by text, sorting by `textScore` will be applied first. Other sorting rules will be applied after that. [Read more on textScore](https://www.mongodb.com/docs/v7.0/reference/operator/aggregation/meta/).
+</Callout>
