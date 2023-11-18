@@ -35,12 +35,6 @@
       "breadcrumb": false
     }
   },
-  "context": {
-    "title": "Context",
-    "theme": {
-      "breadcrumb": false
-    }
-  },
   "hook": {
     "theme": {
       "breadcrumb": false
