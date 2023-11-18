@@ -51,13 +51,19 @@
       "breadcrumb": false
     }
   },
-  "mongoose-schema": {
+  "type-functions": {
+    "title": "Type Functions",
     "theme": {
       "breadcrumb": false
     }
   },
   "bulk-apis": {
     "title": "Bulk APIs",
+    "theme": {
+      "breadcrumb": false
+    }
+  },
+  "mongoose-schema": {
     "theme": {
       "breadcrumb": false
     }
