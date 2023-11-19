@@ -6,25 +6,26 @@ DryerJS, built on NestJS with Mongoose, is a robust tool for creating CRUD Graph
 
 To get started with DryerJS, follow these steps:
 
-1. Init NestJS project:
+1. Prepare:
 
    ```bash
-   npm i -g @nestjs/cli && nest new my-project
+   # install @nestjs/cli and create a new project
+   npm i -g @nestjs/cli && nest new my-project && cd my-project
+   # install standard dependencies
+   npm i @nestjs/graphql @nestjs/apollo class-transformer class-validator @nestjs/mongoose
+   # remove unrelated files
+   rm -rf src/app.controller.ts src/app.service.ts src/app.controller.spec.ts
+   # install dataloader
+   npm i dataloader
    ```
 
-2. Install dependencies:
-
-   ```bash
-   npm i @nestjs/graphql @nestjs/apollo class-transformer class-validator @nestjs/mongoose dataloader
-   ```
-
-3. Install DryerJS as a dependency in your project
+2. Install DryerJS:
 
    ```bash
    npm i dryerjs
    ```
 
-4. Declare your first model on `src/user.ts`:
+3. Declare your first model on `src/user.ts`:
 
    ```typescript
    import { Definition, Property, Id, Skip } from 'dryerjs';
@@ -45,7 +46,7 @@ To get started with DryerJS, follow these steps:
    }
    ```
 
-5. Import your model and DryerJSModule in AppModule with other modules inside app.module.ts:
+4. Import your model and DryerJSModule in AppModule with other modules inside app.module.ts:
 
    ```typescript
    import { Module } from '@nestjs/common';
@@ -70,10 +71,10 @@ To get started with DryerJS, follow these steps:
    export class AppModule {}
    ```
 
-6. Start server
+5. Start server
 
    ```bash
    npm run start:dev
    ```
 
-7. Open browser and go to [http://localhost:3000/graphql](http://localhost:3000/graphql) to see the GraphQL playground.
+6. Open browser and go to [http://localhost:3000/graphql](http://localhost:3000/graphql) to see the GraphQL playground.
