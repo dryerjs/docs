@@ -36,7 +36,7 @@ You can mix the `type functions` with NestJS `Mapped types` to create your own t
 
 ```ts
 @InputType()
-export class SignInInput extends Pick(CreateUserInput, ['email', 'password']) {}
+export class SignInInput extends Pick(CreateInputType(User), ['email', 'password']) {}
 ```
 
 There are `Partial`, `Pick`, `Omit`, `Intersection` and `Composition` mapped types available.
