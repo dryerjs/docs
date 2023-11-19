@@ -8,43 +8,43 @@ To get started with DryerJS, follow these steps:
 
 1. Prepare:
 
-   ```bash copy
-   # install @nestjs/cli and create a new project
-   npm i -g @nestjs/cli && nest new my-project && cd my-project
-   # install standard dependencies
-   npm i @nestjs/graphql @nestjs/apollo class-transformer class-validator @nestjs/mongoose
-   # remove unrelated files
-   rm -rf src/app.controller.ts src/app.service.ts src/app.controller.spec.ts
-   # install dataloader
-   npm i dataloader
-   ```
+```bash copy
+# install @nestjs/cli and create a new project
+npm i -g @nestjs/cli && nest new my-project && cd my-project
+# install standard dependencies
+npm i @nestjs/graphql @nestjs/apollo class-transformer class-validator @nestjs/mongoose
+# remove unrelated files
+rm -rf src/app.controller.ts src/app.service.ts src/app.controller.spec.ts
+# install dataloader
+npm i dataloader
+```
 
 2. Install DryerJS:
 
-   ```bash copy
-   npm i dryerjs
-   ```
+```bash copy
+npm i dryerjs
+```
 
 3. Declare your first model on `src/user.ts`:
 
-   ```ts copy
-   import { Definition, Property, Id, Skip } from 'dryerjs';
+```ts copy
+import { Definition, Property, Id, Skip } from 'dryerjs';
 
-   @Definition()
-   export class User {
-     @Id()
-     id: string;
+@Definition()
+export class User {
+  @Id()
+  id: string;
 
-     @Property()
-     email: string;
+  @Property()
+  email: string;
 
-     @Property({ update: Skip, output: Skip })
-     password: string;
+  @Property({ update: Skip, output: Skip })
+  password: string;
 
-     @Property()
-     name: string;
-   }
-   ```
+  @Property()
+  name: string;
+}
+```
 
 4. Import your model and DryerJSModule in AppModule with other modules inside app.module.ts:
 
@@ -58,23 +58,23 @@ import { DryerModule } from 'dryerjs';
 import { User } from './user';
 
 @Module({
-   imports: [
-      GraphQLModule.forRoot<ApolloDriverConfig>({
+  imports: [
+    GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: true,
       playground: true,
-      }),
-      MongooseModule.forRoot('mongodb://127.0.0.1:27017/test'),
-      DryerModule.register({ definitions: [User] }),
-   ],
+    }),
+    MongooseModule.forRoot('mongodb://127.0.0.1:27017/test'),
+    DryerModule.register({ definitions: [User] }),
+  ],
 })
 export class AppModule {}
 ```
 
 5. Start server
 
-   ```bash copy
-   npm run start:dev
-   ```
+  ```bash copy
+  npm run start:dev
+  ```
 
 6. Open browser and go to [http://localhost:3000/graphql](http://localhost:3000/graphql) to see the GraphQL playground.

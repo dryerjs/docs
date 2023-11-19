@@ -26,6 +26,7 @@ export class Customer {
     operators: ['gte', 'gt', 'lte', 'lt', 'exists']
   })
   @Property({ nullable: true })
+  @Sortable()
   numberOfOrders?: number;
 
   @Filterable(() => GraphQLObjectId, { operators: ['eq', 'in'] })
@@ -108,13 +109,12 @@ query {
     page: 1,
     limit: 10,
     filter: {
-      search: 'John'
+      search: "John"
     }
   ) {
     docs {
-      email
-        numberOfOrders
-      }
+      name
+  	}
     totalDocs
   }
 }
