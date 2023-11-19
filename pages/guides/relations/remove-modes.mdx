@@ -38,10 +38,27 @@ The most possible reason is some [hooks](/guides/hook) for the related documents
 You can do that by providing a handler for the error.
 
 ```ts copy
+import {
+  AfterRemoveHookInput,
+  FailCleanUpAfterRemoveHandler,
+  FAIL_CLEAN_UP_AFTER_REMOVE_HANDLER,
+} from 'dryerjs';
+
 @Injectable()
 class FailHandler implements FailCleanUpAfterRemoveHandler {
-  async handleItem(input: HandleItemInput, error: Error): Promise<void> {}
-  async handleAll(input: HandleAllInput, error: Error): Promise<void> {}
+  async handleItem(
+    input: AfterRemoveHookInput<any, any>,
+    error: Error,
+  ): Promise<void> {
+    console.log('handleItem', input, error);
+  }
+
+  async handleAll(
+    input: AfterRemoveHookInput<any, any>,
+    error: Error,
+  ): Promise<void> {
+    console.log('handleAll', input, error);
+  }
 }
 
 @Module({
