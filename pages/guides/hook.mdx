@@ -184,7 +184,7 @@ export class AppModule {}
 
 ### afterCreate & afterUpdate & afterRemove
 
-* Emit events (e.g. send email to user after they register)
+* Emit events (e.g. send emails to users after they register)
 
 ## General Hook
 
@@ -206,8 +206,8 @@ class GeneralHook implements Hook {
 ## Default hook
 
 DryerJS has a default hook that will be called for all models.
-It mostly used for checking relations before write operations.
-It also remove related documents when remove mode is `CleanUpRelationsAfterRemoved`. See [Remove Mode](/guides/relations/remove-modes) for more details.
+It is mostly used for checking relations before write operations.
+It also removes related documents when remove mode is `CleanUpRelationsAfterRemoved`. See [Remove Mode](/guides/relations/remove-modes) for more details.
 
 You can skip the default hook by setting `skipDefaultHookMethods` in `@Definition` decorator.
 
