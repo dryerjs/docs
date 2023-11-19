@@ -18,8 +18,11 @@ Below example, we create a `General Hook` to emit events when a record of any mo
 Then there is a `EmailService` that listens to the `user.created` event and send a welcome email to the user.
 
 ```ts copy
-import { Module } from '@nestjs/common';
-import { EventEmitterModule, EventEmitter2 } from '@nestjs/event-emitter';
+import {
+  EventEmitter2,
+  EventEmitterModule,
+  OnEvent,
+} from '@nestjs/event-emitter';
 
 type Context = {};
 
@@ -27,27 +30,30 @@ type Context = {};
 class EventEmitterHook implements Hook<any, Context> {
   constructor(private readonly eventEmitter: EventEmitter2) {}
 
-  async afterCreate(input: AfterCreateHookInputk<any, Context>) {
-    const name = `${input.Definition.name}.created`;
+  async afterCreate(input: AfterCreateHookInput<any, Context>) {
+    const name = `${input.definition.name}.created`;
+    console.log({ name, input });
     this.eventEmitter.emit(name, input);
   }
 
-  async afterUpdate(input: AfterUpdateHookInputk<any, Context>) {
-    const name = `${input.Definition.name}.updated`;
+  async afterUpdate(input: AfterUpdateHookInput<any, Context>) {
+    const name = `${input.definition.name}.updated`;
     this.eventEmitter.emit(name, input);
   }
 
-  async afterRemove(input: AfterRemoveHookInputk<any, Context>) {
-    const name = `${input.Definition.name}.removed`;
+  async afterRemove(input: AfterRemoveHookInput<any, Context>) {
+    const name = `${input.definition.name}.removed`;
     this.eventEmitter.emit(name, input);
   }
 }
 
 @Injectable()
 class EmailService {
-  @OnEvent('user.created')
-  async handleOrderCreatedEvent({ input }: AfterCreateHookInputk<User, Context>) {
-    await this.sendWelcomeEmail({ email: input.email, name: input.name });
+  @OnEvent('User.created')
+  async handleOrderCreatedEvent({
+    input,
+  }: AfterCreateHookInput<User, Context>) {
+    console.log(`Send welcome email to ${input.email}`);
   }
 }
 

@@ -6,7 +6,7 @@ Hooks are the place that you can add your own code to the default behavior or Dr
 Below is a example of a hook that will be called before a new Tag is created. If the tag already exists, it will throw an error.
 
 ```ts copy
-import { Model } from 'mongoose';
+import { PaginatedModel } from 'mongoose';
 
 @Definition()
 export class Tag {
@@ -19,7 +19,7 @@ export class Tag {
 
 @Hook(() => Tag)
 class TagHook implements Hook<Tag> {
-  constructor(@InjectModel('Tag') private readonly Tag: Model<Tag>) {}
+  constructor(@InjectModel('Tag') private readonly Tag: PaginatedModel<Tag>) {}
 
   async beforeCreate({ input }: BeforeCreateHookInput) {
     const existingTag = await this.Tag.findOne({ name: input.name });

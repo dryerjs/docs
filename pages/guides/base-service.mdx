@@ -50,6 +50,8 @@ class AuthService {
 you can use `mongoose` `Model` directly.
 
 ```ts copy
+import { PaginatedModel } from 'mongoose';
+
 @Injectable()
 class AuthService {
   constructor(@InjectModel(User) public User: PaginateModel<User>) {}
