@@ -6,23 +6,33 @@ Hooks are the place that you can add your own code to the default behavior or Dr
 Below is a example of a hook that will be called before a new Tag is created. If the tag already exists, it will throw an error.
 
 ```ts copy
+import { Model } from 'mongoose';
+
+@Definition()
+export class Tag {
+  @Id()
+  id: ObjectId;
+
+  @Property()
+  name: string;
+}
+
 @Hook(() => Tag)
 class TagHook implements Hook<Tag> {
   constructor(@InjectModel('Tag') private readonly Tag: Model<Tag>) {}
-  
+
   async beforeCreate({ input }: BeforeCreateHookInput) {
     const existingTag = await this.Tag.findOne({ name: input.name });
-    if (existingTag) throw new Error(`Tag with name ${input.name} already exists`);
+    if (existingTag) {
+      throw new Error(`Tag with name ${input.name} already exists`);
+    }
   }
 }
 
 @Module({
-  // other configs
   imports: [
-    DryerModule.register({
-      hooks: [TagHook],
-      definitions: [Tag],
-    }),
+    // other imports
+    DryerModule.register({ definitions: [Tag], hooks: [TagHook] }),
   ],
 })
 export class AppModule {}
@@ -101,6 +111,21 @@ export interface Hook<T = any, Context = any> {
   API `update` and `remove` use `findOne` under the hood so you might feel like `beforeFindOne` and `afterFindOne` are applied for `update` and `remove` too.
   If your `context` cannot `findOne` a document, you will not be able to `update` and `remove` it.
 </Callout>
+
+There are exported types for hooks input. You can import them from `'dryerjs'`. Each type has two parameters of `T` and `Context`.
+
+```ts copy
+AfterRemoveHookInput
+BeforeRemoveHookInput
+AfterFindOneHookInput
+BeforeFindOneHookInput
+AfterUpdateHookInput
+BeforeUpdateHookInput
+AfterCreateHookInput
+BeforeCreateHookInput
+BeforeFindManyHookInput
+AfterFindManyHookInput
+```
 
 ## Customize Context
 
