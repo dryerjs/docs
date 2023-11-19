@@ -7,312 +7,389 @@ This recipe shows how to use NestJS JWT module to implement authentication with 
 ```bash
 $ npm install @nestjs/jwt --save
 ```
+```ts copy
+import { Request } from 'express';
+import {
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+  Module,
+  OnModuleInit,
+  UnauthorizedException,
+  UseGuards,
+  ValidationPipe,
+  createParamDecorator,
+} from '@nestjs/common';
+import {
+  Args,
+  Field,
+  GqlExecutionContext,
+  GraphQLModule,
+  Mutation,
+  PickType,
+  Query,
+  Resolver,
+  registerEnumType,
+  ObjectType,
+  InputType,
+} from '@nestjs/graphql';
+import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
+import { InjectModel, MongooseModule } from '@nestjs/mongoose';
+import {
+  BelongsTo,
+  CreateInputType,
+  Definition,
+  DryerModule,
+  GraphQLObjectId,
+  Id,
+  ObjectId,
+  OutputType,
+  Property,
+  Skip,
+} from 'dryerjs';
+import { PaginateModel } from 'mongoose';
+import { BaseService, InjectBaseService } from 'dryerjs/dist/base.service';
+import { JwtModule, JwtService } from '@nestjs/jwt';
+import { plainToInstance } from 'class-transformer';
+import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
 
-1. Import JWT Module
+enum UserRole {
+  USER = 'USER',
+  ADMIN = 'ADMIN',
+}
 
-```typescript
-// src/app.module.ts
+registerEnumType(UserRole, { name: 'UserRole' });
 
-import { Module } from "@nestjs/common";
-import { GraphQLModule } from "@nestjs/graphql";
-import { ApolloDriver, ApolloDriverConfig } from "@nestjs/apollo";
-import { MongooseModule } from "@nestjs/mongoose";
-import { DryerModule } from "dryerjs";
-import { JwtModule } from "@nestjs/jwt";
+@Definition({ allowedApis: ['findOne', 'paginate', 'remove', 'update'] })
+export class User {
+  @Id()
+  id: ObjectId;
 
-import { User } from "./user";
+  @Property()
+  email: string;
+
+  @Property({ db: { type: String, enum: UserRole } })
+  role: UserRole;
+
+  @Property()
+  name: string;
+
+  @Property({ update: Skip, output: Skip })
+  password: string;
+}
+
+@Definition()
+export class Post {
+  @Id()
+  id: string;
+
+  @Property()
+  content: string;
+
+  @Property({ nullable: true, create: { defaultValue: true } })
+  isPublic: boolean;
+
+  @BelongsTo(() => User, { from: 'userId' })
+  user: User;
+
+  @Property({ type: () => GraphQLObjectId })
+  userId: ObjectId;
+}
+
+type Context = null | Pick<User, 'email' | 'id' | 'name' | 'role'>;
+
+const SYSTEM: Context = {
+  id: new ObjectId('999999999999999999999999'),
+  role: UserRole.ADMIN,
+  email: 'system@dryerjs.com',
+  name: 'system',
+};
+
+const pipe = new ValidationPipe({
+  transform: true,
+  expectedType: CreateInputType(User),
+});
+
+export const Ctx = createParamDecorator(
+  (_data: unknown, ctx: ExecutionContext) => {
+    const { req } = GqlExecutionContext.create(ctx).getContext();
+    if (req.user) return req.user as Context;
+    return null;
+  },
+);
+
+const getCtxFromReq = async (
+  req: Request,
+  jwtService: JwtService,
+): Promise<Context> => {
+  const token = req.header('Authorization')?.split(' ')[1];
+  if (!token) return null;
+  try {
+    return jwtService.verify(token);
+  } catch (error) {
+    return null;
+  }
+};
+
+@Injectable()
+export class AdminOnly implements CanActivate {
+  constructor(private readonly jwtService: JwtService) {}
+
+  async canActivate(executionContext: ExecutionContext): Promise<boolean> {
+    const { req } = GqlExecutionContext.create(executionContext).getContext();
+    const ctx = await getCtxFromReq(req, this.jwtService);
+    if (ctx?.role !== UserRole.ADMIN) {
+      throw new UnauthorizedException('AdminOnly');
+    }
+    req.ctx = ctx;
+    return true;
+  }
+}
+
+@Injectable()
+export class UserOnly implements CanActivate {
+  constructor(private readonly jwtService: JwtService) {}
+
+  async canActivate(executionContext: ExecutionContext): Promise<boolean> {
+    const { req } = GqlExecutionContext.create(executionContext).getContext();
+    const ctx = await getCtxFromReq(req, this.jwtService);
+    if (![UserRole.ADMIN, UserRole.USER].includes(ctx?.role)) {
+      throw new UnauthorizedException('AdminOnly');
+    }
+    req.ctx = ctx;
+    return true;
+  }
+}
+
+@Injectable()
+export class PublicAccessWithContext implements CanActivate {
+  constructor(private readonly jwtService: JwtService) {}
+
+  async canActivate(executionContext: ExecutionContext): Promise<boolean> {
+    const { req } = GqlExecutionContext.create(executionContext).getContext();
+    const ctx = await getCtxFromReq(req, this.jwtService);
+    req.ctx = ctx;
+    return true;
+  }
+}
+
+@ObjectType()
+class AccessTokenResponse {
+  @Field()
+  token: string;
+}
+
+@InputType()
+class SignInInput extends PickType(CreateInputType(User), [
+  'email',
+  'password',
+]) {
+  @Field({ nullable: true })
+  remember: boolean;
+}
+
+@Resolver()
+export class AuthResolver {
+  constructor(
+    @InjectBaseService(User) public userService: BaseService<User, Context>,
+    private readonly jwtService: JwtService,
+  ) {}
+
+  @Mutation(() => OutputType(User))
+  async signUp(
+    @Args('input', { type: () => CreateInputType(User) }, pipe)
+    input: Omit<User, 'id'>,
+  ) {
+    const user = await this.userService.create(SYSTEM, input);
+    return plainToInstance(User, user['toObject']());
+  }
+
+  @Mutation(() => AccessTokenResponse)
+  async signIn(
+    @Args('input', {
+      type: () => SignInInput,
+    })
+    input: Pick<User, 'email' | 'password'>,
+  ) {
+    const user = await this.userService.findOne(SYSTEM, {
+      email: input.email,
+    });
+    if (user.password === input.password) {
+      throw new UnauthorizedException('Invalid email or password');
+    }
+    const accessToken = await this.jwtService.signAsync({
+      id: user.id.toString(),
+      role: user.role,
+      email: user.email,
+      name: user.name,
+    });
+    return { accessToken };
+  }
+
+  @UseGuards(UserOnly)
+  @Query(() => OutputType(User))
+  async whoAmI(@Ctx() ctx: Context) {
+    const user = await this.userService.findOne(ctx, { _id: ctx.id });
+    if (user === null) {
+      throw new UnauthorizedException();
+    }
+    return user;
+  }
+}
+
+@Injectable()
+export class SeederService implements OnModuleInit {
+  constructor(
+    @InjectModel('User') readonly User: PaginateModel<User>,
+    @InjectModel('Post') readonly Post: PaginateModel<User>,
+  ) {}
+
+  async onModuleInit() {
+    if ((await this.User.countDocuments({})) !== 0) return;
+    console.log('Seeding...');
+    const adminUserId = new ObjectId('000000000000000000000000');
+    const normalUserId = new ObjectId('000000000000000000000001');
+    const users = [
+      {
+        _id: adminUserId,
+        email: 'admin@dryerjs.com',
+        password: 'password',
+        name: 'Admin@DryerJS',
+        role: UserRole.ADMIN,
+      },
+      {
+        _id: new ObjectId('000000000000000000000001'),
+        email: 'user@dryerjs.com',
+        password: 'password',
+        name: 'User@DryerJS',
+        role: UserRole.USER,
+      },
+    ];
+    const posts = [
+      {
+        _id: new ObjectId('000000000000000000000002'),
+        content: 'Admin public announcement',
+        isPublic: true,
+        userId: adminUserId,
+      },
+      {
+        _id: new ObjectId('000000000000000000000003'),
+        content: 'Admin private note',
+        isPublic: false,
+        userId: adminUserId,
+      },
+      {
+        _id: new ObjectId('000000000000000000000004'),
+        content: 'User public note',
+        isPublic: true,
+        userId: normalUserId,
+      },
+      {
+        _id: new ObjectId('000000000000000000000005'),
+        content: 'User private note',
+        isPublic: false,
+        userId: normalUserId,
+      },
+    ];
+    for (const user of users) await this.User.create(user);
+    for (const post of posts) await this.Post.create(post);
+  }
+}
 
 @Module({
   imports: [
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: true,
-      playground: true,
+      playground: false,
+      plugins: [ApolloServerPluginLandingPageLocalDefault()],
     }),
-    MongooseModule.forRoot("mongodb://127.0.0.1:27017/test"),
-    DryerModule.register({ definitions: [User] }),
+    MongooseModule.forRoot('mongodb://127.0.0.1:27017/dryerjs-jwt'),
+    DryerModule.register({ definitions: [User, Post], contextDecorator: Ctx }),
     JwtModule.register({
-      secret: "JWT_SECRET",
-      signOptions: { expiresIn: "7d" },
+      secret: 'DO_NOT_TELL_ANYONE',
+      signOptions: { expiresIn: '7d' },
     }),
   ],
+  providers: [AuthResolver, SeederService],
 })
 export class AppModule {}
 ```
 
-2. Create a `UserService`
+## Sample queries
 
-```typescript
-// src/services/user.service.ts
+### Sign in
 
-import { Model } from "mongoose";
-import { Injectable } from "@nestjs/common";
-import { InjectModel } from "@nestjs/mongoose";
-import { User } from "src/models";
-
-@Injectable()
-export class UserService {
-  constructor(@InjectModel("User") private user: Model<User>) {}
-
-  public async findOneById(id: string): Promise<User> {
-    return this.user.findById(id);
-  }
-
-  public async findOneByEmail(email: string): Promise<User> {
-    return this.user.findOne({ email });
+```graphql copy
+mutation {
+  signIn(input: {
+    email: "admin@dryerjs.com"
+    password: "password"
+  }) {
+    accessToken
   }
 }
 ```
 
-3. Create `AuthService`
+### Paginate users
 
-```typescript
-// src/services/auth.service.ts
+This is a public API. You don't need to set `Authorization` header.
 
-import { Injectable, UnauthorizedException } from "@nestjs/common";
-import { JwtService } from "@nestjs/jwt";
-import { SignupInput } from "src/dtos/user.dtos";
-import { User } from "src/models";
-import { UserService } from "src/services/user.service";
-
-@Injectable()
-export class AuthService {
-  constructor(
-    private userService: UserService,
-    private jwtService: JwtService
-  ) {}
-
-  public async login(email: string, password: string) {
-    const user = await this.userService.findOneByEmail(email);
-    if (!user) {
-      throw new UnauthorizedException("User doesn't exist");
+```graphql copy
+query PaginateUsers {
+  paginateUsers {
+    docs {
+      id
+      role
+      name
+      email
     }
-    if (user.password !== password) {
-      throw new UnauthorizedException("Invalid email or password");
-    }
-    const payload = { sub: user.id, email: user.email };
-    const accessToken = await this.jwtService.signAsync(payload);
-    return { accessToken };
-  }
-
-  public async signup(email: string, password: string) {
-    const user = await this.userService.create({ email, password });
-    const payload = { sub: user.id, email: user.email };
-    const accessToken = await this.jwtService.signAsync(payload);
-    return { accessToken };
-  }
-
-  public async verifyAndGetUser(token: string): Promise<User | null> {
-    const payload = await this.jwtService.verifyAsync(token);
-    if (!payload.sub) return null;
-    const user = await this.userService.findOneById(payload.sub);
-    return user;
+    totalDocs
   }
 }
 ```
 
-4. Import `AuthService` and `UserService` in `AppModule`
+### Find one user
 
-```typescript
-// src/app.module.ts
+This is a public API. You don't need to set `Authorization` header.
 
-@Module({
-  imports: [
-    ...
-  ],
-  providers: [AuthService, UserService],
-})
-export class AppModule {}
-```
-
-5. Create custom graphql context
-
-```typescript
-// src/customContext.ts
-
-import { Request, Response } from "express";
-import type { User } from "src/models";
-
-export class CustomContext {
-  private _req: Request;
-  private _res: Response;
-  private _user: User;
-
-  constructor(req: Request, res: Response) {
-    this._req = req;
-    this._res = res;
-  }
-
-  public get req(): Request {
-    return this._req;
-  }
-
-  public setUser(user: User) {
-    this._user = user;
-  }
-
-  public get user(): User {
-    return this._user;
-  }
-}
-
-export const customContext = async ({ req, res }): Promise<CustomContext> => {
-  return new CustomContext(req, res);
-};
-```
-
-6. Add custom context to `GraphQLModule`
-
-```typescript
-// src/app.module.ts
-
-@Module({
-  imports: [
-    GraphQLModule.forRoot<ApolloDriverConfig>({
-      ...
-      context: customContext,
-    }),
-  ],
-  exports: [GraphQLModule],
-})
-export class AppModule {}
-```
-
-7. Create `AuthResolver`
-
-```typescript
-// src/resolvers/auth.resolver.ts
-
-import { OutputType } from "dryerjs";
-import { Resolver, Mutation, Args } from "@nestjs/graphql";
-import { AuthService } from "src/services/auth.service";
-
-@Resolver()
-export class AuthResolver {
-  constructor(private authService: AuthService) {}
-
-  @Mutation()
-  public async login(
-    @Args("email") email: string,
-    @Args("password") password: string
-  ) {
-    return this.authService.login(email, password);
-  }
-
-  @Mutation()
-  public async signup(
-    @Args("email") email: string,
-    @Args("password") password: string
-  ) {
-    return this.authService.signup(email, password);
+```graphql copy
+query User($userId: ObjectId!) {
+  user(id: $userId) {
+    email
+    id
+    name
+    role
   }
 }
 ```
 
-8. Add `AuthResolver` to `AppModule`
+### Update user
 
-````typescript
-// src/app.module.ts
+User cannot update `role` field.
 
-import { AuthResolver } from "src/resolvers/auth.resolver";
-
-@Module({
-  imports: [
-    ...
-  ],
-  providers: [AuthService, UserService, AuthResolver],
-})
-```
-
-9. Create `AuthGuard`
-
-```typescript
-// src/guards/auth.guard.ts
-
-import { Injectable, CanActivate, ExecutionContext } from "@nestjs/common";
-import { GqlExecutionContext } from "@nestjs/graphql";
-import { AppContext } from "src/customContext";
-import { AuthService } from "src/services/auth.service";
-
-@Injectable()
-export class AuthGuard implements CanActivate {
-  constructor(private readonly authService: AuthService) {}
-
-  async canActivate(context: ExecutionContext): Promise<boolean> {
-    const ctx: AppContext = GqlExecutionContext.create(context).getContext();
-    const authorization = ctx.req.headers.authorization;
-    if (authentication) {
-      const token = authorization.split(" ")[1]; // Bearer <token>
-      const user = await this.authService.verifyAndGetUser(token);
-      if (user) {
-        ctx.setUser(user);
-        return true;
-      }
-    }
-    return false;
-  }
-}
-````
-
-10. Use `AuthGuard`.
-
-Put `AuthGuard` in `AppModule` providers if you want to use it globally.
-
-```typescript
-// src/app.module.ts
-
-import AuthGuard from "src/guards/auth.guard";
-
-@Module({
-  ...
-  providers: [
-    {
-      provide: APP_GUARD,
-      useClass: AuthGuard,
-    },
-  ],
-})
-export class AppModule {}
-```
-
-Or use it in a resolver to protect a specific query or mutation.
-
-```typescript
-// src/resolvers/user.resolver.ts
-
-import { Resolver, Query, Args } from "@nestjs/graphql";
-import { UseGuards } from "@nestjs/common";
-
-import { UserService } from "src/services/user.service";
-import { User } from "src/models";
-
-@Resolver()
-@UseGuards(AuthGuard)
-export class UserResolver {
-  @Query(() => OutputType(User), { name: "whoAmI" })
-  public async whoAmI(@Context() ctx: AppContext) {
-    return ctx.user;
+```graphql copy
+mutation UpdateUser {
+  updateUser(input: {
+    id: "000000000000000000000000",
+    role: "ADMIN"
+  }) {
+    email
+    id
+    name
+    role
   }
 }
 ```
 
-Or use it in the Model definition.
+### Remove user
 
-```typescript
-// src/models/post.ts
+Only `ADMIN` can call this `API`.
 
-import { Definition } from "dryerjs";
-import { UseGuards } from "@nestjs/common";
-import { AuthGuard } from "src/guards/auth.guard";
-import { GuestGuard } from "src/guards/guest.guard";
-
-@Definition({
-  resolverDecorators: {
-    create: [UseGuards(AuthGuard)],
-    read: [UseGuards(GuestGuard)],
-    update: [UseGuards(AuthGuard)],
-    delete: [UseGuards(AuthGuard)],
-  },
-})
-class Post {}
+```graphql copy
+mutation RemoveUser {
+  removeUser(id: "000000000000000000000000") {
+    success
+  }
+}
 ```
