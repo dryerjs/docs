@@ -5,7 +5,7 @@ import { Callout } from 'nextra-theme-docs';
 You can authorize your generated APIs by defining `resolverDecorators` in your `@Definition`.
 Below is an example of using `NestJS` `Guard` to authorize your APIs.
 
-```ts
+```ts copy
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
 
@@ -43,7 +43,7 @@ You can use `default`, `write`, `read` to reduce the amount of decorators you ne
 More specific decorators will override less specific decorators.
 Below is the definition of `resolverDecorators`:
 
-```ts
+```ts copy
   resolverDecorators?: {
     default?: MethodDecorator | MethodDecorator[];
     write?: MethodDecorator | MethodDecorator[];
@@ -72,7 +72,7 @@ Below is the definition of `resolverDecorators`:
 
 `resolverDecorators` is not for authentication only. You can use it to add other decorators to your generated resolvers.
 
-```ts
+```ts copy
 import { UseInterceptors } from '@nestjs/common';
 
 @Definition({

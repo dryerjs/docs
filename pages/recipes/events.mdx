@@ -8,7 +8,7 @@ However, you can easily add them by using a `General Hook` combines with `@nestj
 
 First you need to install `@nestjs/event-emitter`:
 
-```bash
+```bash copy
 npm i --save @nestjs/event-emitter
 ```
 
@@ -17,7 +17,7 @@ npm i --save @nestjs/event-emitter
 Below example, we create a `General Hook` to emit events when a record of any model is created, updated or removed.
 Then there is a `EmailService` that listens to the `user.created` event and send a welcome email to the user.
 
-```ts
+```ts copy
 import { Module } from '@nestjs/common';
 import { EventEmitterModule, EventEmitter2 } from '@nestjs/event-emitter';
 

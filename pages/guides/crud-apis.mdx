@@ -7,7 +7,7 @@ With DryerJS, you can easily create CRUD APIs for your models.
 ## Simple model
 
 Suppose you have a model called `Tag`:
-```ts
+```ts copy
 import { Id, ObjectId, Property, Definition } from 'dryerjs';
 
 @Definition()
@@ -28,7 +28,7 @@ Your generated CRUD APIs will be:
 
 ### Create
 
-```graphql
+```graphql copy
 mutation {
   createTag(input: { name: "Sale" }) {
     id
@@ -39,7 +39,7 @@ mutation {
 
 ### Find one
 
-```graphql
+```graphql copy
 query {
   tag(id: "000000000000000000000000") {
     id
@@ -56,7 +56,7 @@ If there is no tags with the given id, the API will return error with message: `
 
 ### Update
 
-```graphql
+```graphql copy
 mutation {
   updateTag(input: {
     id: "000000000000000000000000",
@@ -70,7 +70,7 @@ mutation {
 
 ### Remove
     
-```graphql
+```graphql copy
 mutation {
   removeTag(id: "000000000000000000000000") {
     id
@@ -85,7 +85,7 @@ mutation {
 
 ### Paginate
   
-```graphql
+```graphql copy
 query {
   paginateTags(page: 1, limit: 10) {
     docs {
@@ -108,7 +108,7 @@ There will be `filter` and `sort` arguments which will be covered in the [Filter
 
 ### Find all
 
-```graphql
+```graphql copy
 query {
   allTags {
     id
@@ -131,7 +131,7 @@ Bulk APIs is covered in the [Bulk APIs](/Guides/bulk-apis) section.
 
 You can whitelist APIs by adding them into the `allowedApis` array in the `@Definition` decorator.
 
-```ts
+```ts copy
 @Definition({
   allowedApis: ['paginate', 'create', 'update', 'findOne', 'remove', 'findAll', 'bulkCreate', 'bulkUpdate', 'bulkRemove'],
 })

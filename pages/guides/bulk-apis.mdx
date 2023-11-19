@@ -4,7 +4,7 @@ import { Callout } from 'nextra-theme-docs';
 
 Reuse the `Tag` example on the [CRUD APIs](/guides/crud-apis) section.
 
-```ts
+```ts copy
 import { Id, ObjectId, Property, Definition } from 'dryerjs';
 
 @Definition({ allowedApis: '*' })
@@ -21,7 +21,7 @@ export class Tag {
 
 `Bulk APIs` are not enabled by default. To enable them, you need to set the `allowedApis` property to `*` or list the name of APIs you want.
 
-```ts
+```ts copy
 @Definition({
   allowedApis: [
     'essentials',
@@ -37,7 +37,7 @@ export class Tag {}
 
 ### Bulk Create API
 
-```graphql
+```graphql copy
 mutation {
   bulkCreateTags(inputs: [
     { name: "Large" },
@@ -86,7 +86,7 @@ The output of the `bulkCreateTags` mutation is an array of `BulkResult` objects.
 
 ### Bulk Update API
 
-```graphql
+```graphql copy
   mutation {
     bulkUpdateTags(inputs: [
     { id: "000000000000000000000000", name: "Large" },
@@ -105,7 +105,7 @@ The output of the `bulkCreateTags` mutation is an array of `BulkResult` objects.
 
 ### Bulk Remove API
 
-```graphql
+```graphql copy
   mutation {
     bulkRemoveTags(ids: [
       "000000000000000000000000",
@@ -128,7 +128,7 @@ There can be expected and unexpected errors when using `Bulk APIs`.
 With `BulkErrorHandler` you can response to both types of errors in a way that suits your application.
 Below is an example of how to implement `BulkErrorHandler` and register it as a provider.
 
-```ts
+```ts copy
 @Injectable()
 class MyBulkErrorHandler implements BulkErrorHandler<Context> {
   async handleCreateError(

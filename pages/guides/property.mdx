@@ -6,7 +6,7 @@ import { Callout } from 'nextra-theme-docs';
 
 Below is the simplest property definition.
 
-```ts
+```ts copy
 export class Tag {
   @Property()
   name: string;
@@ -28,7 +28,7 @@ By default, `name` is required on `CreateInputType` and `OutputType` but is null
 
 We can specify a custom GraphQL type.
 
-```ts
+```ts copy
 export class Product {
   @Property({ type: () => graphql.GraphQLFloat })
   weight: number;
@@ -41,7 +41,7 @@ We can have different types with different options for `CreateInputType`, `Updat
 
 The options on top level will be the default options for all types, and the options on `create`, `update` and `output` will override the default options for the corresponding type.
 
-```ts
+```ts copy
 export class Product {
   @Property({
     type: () => graphql.GraphQLFloat,
@@ -61,7 +61,7 @@ export class Product {
 
 By giving `db` field on `@Property` we can specify a custom Mongoose type and its options.
 
-```ts
+```ts copy
 export class User {
   @Property({ db: { unique: true } })
   email: string;

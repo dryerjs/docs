@@ -4,7 +4,7 @@ import { Callout } from 'nextra-theme-docs';
 
 Below is how you can define a `ReferencesMany` relationship.
 
-```ts
+```ts copy
 @Definition()
 export class Tag {
   @Id()
@@ -34,7 +34,7 @@ In the above example, we define a `Product` references many `Tag`. The `tagIds` 
 
 ## Create API
 
-```graphql
+```graphql copy
 mutation {
   createProduct(input: {
     name: "Product 1"
@@ -66,7 +66,7 @@ In this example, product will be created with 2 tags. One is the pre-existing ta
   To prevent resolving the `tags` field, set `noPopulation` to `true`.
 </Callout>
 
-```ts
+```ts copy
 @Definition()
 export class Product {
   @ReferencesMany(() => Tag, { from: 'tagIds', noPopulation: true })

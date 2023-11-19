@@ -8,7 +8,7 @@ To get started with DryerJS, follow these steps:
 
 1. Prepare:
 
-   ```bash
+   ```bash copy
    # install @nestjs/cli and create a new project
    npm i -g @nestjs/cli && nest new my-project && cd my-project
    # install standard dependencies
@@ -21,13 +21,13 @@ To get started with DryerJS, follow these steps:
 
 2. Install DryerJS:
 
-   ```bash
+   ```bash copy
    npm i dryerjs
    ```
 
 3. Declare your first model on `src/user.ts`:
 
-   ```typescript
+   ```ts copy
    import { Definition, Property, Id, Skip } from 'dryerjs';
 
    @Definition()
@@ -48,32 +48,32 @@ To get started with DryerJS, follow these steps:
 
 4. Import your model and DryerJSModule in AppModule with other modules inside app.module.ts:
 
-   ```typescript
-   import { Module } from '@nestjs/common';
-   import { GraphQLModule } from '@nestjs/graphql';
-   import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
-   import { MongooseModule } from '@nestjs/mongoose';
-   import { DryerModule } from 'dryerjs';
+```ts copy
+import { Module } from '@nestjs/common';
+import { GraphQLModule } from '@nestjs/graphql';
+import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
+import { MongooseModule } from '@nestjs/mongoose';
+import { DryerModule } from 'dryerjs';
 
-   import { User } from './user';
+import { User } from './user';
 
-   @Module({
-     imports: [
-       GraphQLModule.forRoot<ApolloDriverConfig>({
-         driver: ApolloDriver,
-         autoSchemaFile: true,
-         playground: true,
-       }),
-       MongooseModule.forRoot('mongodb://127.0.0.1:27017/test'),
-       DryerModule.register({ definitions: [User] }),
-     ],
-   })
-   export class AppModule {}
-   ```
+@Module({
+   imports: [
+      GraphQLModule.forRoot<ApolloDriverConfig>({
+      driver: ApolloDriver,
+      autoSchemaFile: true,
+      playground: true,
+      }),
+      MongooseModule.forRoot('mongodb://127.0.0.1:27017/test'),
+      DryerModule.register({ definitions: [User] }),
+   ],
+})
+export class AppModule {}
+```
 
 5. Start server
 
-   ```bash
+   ```bash copy
    npm run start:dev
    ```
 

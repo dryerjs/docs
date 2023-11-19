@@ -3,7 +3,7 @@
 It is complicated to remove documents with active relations. Sometime you might want to force remove a document, even if it has active relations, by ignoring the relations or by remove the related documents as well.
 DryerJS provides some modes to remove documents.
 
-```ts
+```ts copy
 export enum RemoveMode {
   RequiredCleanRelations = 'RequiredCleanRelations',
   IgnoreRelations = 'IgnoreRelations',
@@ -17,7 +17,7 @@ export enum RemoveMode {
 
 By default, only `RequiredCleanRelations` mode is enabled. To enabled other modes, you need to set the `removalConfig` in the `@Definition` decorator.
 
-```ts
+```ts copy
 @Definition({
   removalConfig: {
     allowIgnoreRelationCheck: true,
@@ -37,7 +37,7 @@ Meaning that the main operation can be removed and respond as successful to the 
 The most possible reason is some [hooks](/guides/hook) for the related documents are throwing an error. You would want to response to the error.
 You can do that by providing a handler for the error.
 
-```ts
+```ts copy
 @Injectable()
 class FailHandler implements FailCleanUpAfterRemoveHandler {
   async handleItem(input: HandleItemInput, error: Error): Promise<void> {}
@@ -56,7 +56,7 @@ export class AppModule {}
 
 `DryerJS` will be using the `FailCleanUpAfterRemoveHandler` in a loop, below psuedo code shows how it is used.
 
-```ts
+```ts copy
   private async cleanUpRelationsAfterRemoved(input: AfterRemoveHookInput) {
     try {
       for (const relatedDocument of relatedDocuments) {

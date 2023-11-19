@@ -8,7 +8,7 @@ import { Callout } from 'nextra-theme-docs';
 
 You can override the default behavior by using `@Schema` decorator.
 
-```ts
+```ts copy
 @Schema({ name: 'tag' })
 @Definition()
 class Tag {}
@@ -16,7 +16,7 @@ class Tag {}
 
 You can also use `onSchema` option on `@DryerModule.register`.
 
-```ts
+```ts copy
 // app.module.ts
 @DryerModule.register({
   definitions: [Tag],
@@ -30,7 +30,7 @@ You can also use `onSchema` option on `@DryerModule.register`.
 
 
 
-```ts
+```ts copy
 @Index({ name: 1 }, { unique: true })
 @Definition()
 class Tag {}

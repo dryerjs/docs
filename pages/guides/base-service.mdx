@@ -9,7 +9,7 @@ it provides basic CRUD operations with `context` and `Hooks`.
 
 Below is the type of `BaseService`, from that you can see the methods and their parameters.
 
-```ts
+```ts copy
 class BaseService<T = any, Context = any> {
     create(ctx: Context, input: Partial<T>): Promise<T>;
     update(ctx: Context, input: Partial<T> & { id: ObjectId }): Promise<T>;
@@ -28,7 +28,7 @@ class BaseService<T = any, Context = any> {
 
 Below is an example of how to inject `BaseService`
 
-```ts
+```ts copy
 import { BaseService, InjectBaseService } from 'dryerjs';
 
 type Context = { user: { id: ObjectId, role: 'admin' | 'user' } }
@@ -49,7 +49,7 @@ class AuthService {
 `BaseService` only covers the basic CRUD operations with context, if you want to use more advanced features or context free,
 you can use `mongoose` `Model` directly.
 
-```ts
+```ts copy
 @Injectable()
 class AuthService {
   constructor(@InjectModel(User) public User: PaginateModel<User>) {}
@@ -64,7 +64,7 @@ class AuthService {
 
 `Context` normally comes from the `Resolvers`, but you can also create your own context object to pass into `BaseService` methods.
 
-```ts
+```ts copy
 @Injectable()
 class AuthService {
   async cron() {
