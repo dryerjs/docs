@@ -4,7 +4,7 @@ import { Callout } from 'nextra-theme-docs';
 
 You can declare a property as embedded to embed a document inside another document.
 
-```ts
+```ts copy
 @Definition()
 export class Book {
   @Id()
@@ -31,7 +31,7 @@ export class Author {
 You should not include embedded definitions in the `definitions` array of the `DryerModule.register` method.
 </Callout>
 
-```ts
+```ts copy
 // app.module.ts
 @Module({
   imports: [
@@ -49,7 +49,7 @@ export class AppModule {}
 
 You will be able to create an author with books.
 
-```graphql
+```graphql copy
 mutation {
   createAuthor(input: {
     name: "Joanne Rowling"
@@ -72,7 +72,7 @@ mutation {
 
 You will be able to update author and books as well.
 
-```graphql
+```graphql copy
 mutation {
   createAuthor(input: {
     id: "000000000000000000000000",
@@ -100,7 +100,7 @@ If there are more books in the database than the ones you are sending, the extra
 
 ### Create embedded API
 
-```graphql
+```graphql copy
   mutation {
     createAuthorBooks(
       authorId: '000000000000000000000000'
@@ -122,7 +122,7 @@ Only newly created books will be returned.
 
 ### Update embedded API
 
-```graphql
+```graphql copy
   mutation {
     updateAuthorBooks(
       authorId: '000000000000000000000000'
@@ -143,7 +143,7 @@ Only books with listed ids will be returned, other books will stay the same but 
 
 ### Remove embedded API
 
-```graphql
+```graphql copy
   mutation {
     removeAuthorBooks(
       authorId: '000000000000000000000000'
@@ -159,7 +159,7 @@ Only books with listed ids will be returned, other books will stay the same but 
 
 ### Find one embedded API
 
-```graphql
+```graphql copy
   query {
     authorBook(
       authorId: '000000000000000000000000'
@@ -173,7 +173,7 @@ Only books with listed ids will be returned, other books will stay the same but 
 
 ### Find all embedded API
 
-```graphql
+```graphql copy
   query {
     authorBooks(
       authorId: '000000000000000000000000'
@@ -188,7 +188,7 @@ Only books with listed ids will be returned, other books will stay the same but 
 
 You can also whitelist the APIs you want to allow for the embedded document. By default, all APIs are allowed.
 
-```ts
+```ts copy
 export class Author {
   @Embedded(() => Book, {
     allowApis: ['create', 'update', 'remove', 'findOne', 'findAll'],
@@ -202,7 +202,7 @@ export class Author {
 
 You can also embed an object. There will be no embedded APIs for this case, but you will be able to create and update the object from the parent document.
 
-```ts
+```ts copy
 @Definition()
 class Brand {
   @Property()
@@ -227,7 +227,7 @@ export class Car {
 You can embed documents inside other embedded documents but the embedded APIs will only work for the first level.
 As on the example below, Author will have embedded Books and Books will have embedded Reviews.
 
-```ts
+```ts copy
 @Definition()
 export class Review {
   @Id()
@@ -270,7 +270,7 @@ You should read the [Authentication](/docs/authentication) section before this o
 
 You can add any decorators for embedded APIs including Authentication decorators.
 
-```ts
+```ts copy
 import { UseGuards } from '@nestjs/common';
 
 @Definition()
@@ -283,7 +283,7 @@ export class Author {
 The example above will add the `@UseGuards(UserOnly)` decorator to the `removeAuthorBooks` resolver.
 You can add decorators for other APIs as well. The `resolverDecorators` object has the following structure:
 
-```ts
+```ts copy
 resolverDecorators?: {
   default?: MethodDecorator | MethodDecorator[];
   write?: MethodDecorator | MethodDecorator[];
@@ -302,7 +302,7 @@ You can use `default` to add decorators to all APIs, `write` to add decorators t
 
 There is a `onSchema` option that you can use to customize the schema of the embedded document.
 
-```ts
+```ts copy
 import { UseGuards } from '@nestjs/common';
 
 @Definition()

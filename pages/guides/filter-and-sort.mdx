@@ -4,7 +4,7 @@ import { Callout, Collapse } from 'nextra-theme-docs';
 
 You can use the `@Filterable` and `@Sortable` decorators to enable filtering and sorting on your entities.
 
-```ts
+```ts copy
 @Definition()
 export class Customer {
   @Id()
@@ -38,7 +38,7 @@ export class Customer {
 
 You can pass the `operators` option to the `@Filterable` decorator to specify which operators should be available for the field. The following operators are available:
 
-```ts
+```ts copy
 export type FilterOperator =
   | 'eq'
   | 'in'
@@ -60,7 +60,7 @@ export type FilterOperator =
 
 You will be able to use `filter` and `sort` on your `paginate` and `findAll` queries.
 
-```graphql
+```graphql copy
 query {
   paginateCustomers(
     page: 1,
@@ -85,7 +85,7 @@ More sample calls could be found [here](https://github.com/dryerjs/dryerjs/blob/
 
 You can enable text search by adding. Be aware that you have to create text index first.
 
-```ts
+```ts copy
 @Index({ name: 'text' })
 @Definition({
   allowedApis: '*',
@@ -102,7 +102,7 @@ export class Customer {
 }
 ```
 
-```graphql
+```graphql copy
 query {
   paginateCustomers(
     page: 1,

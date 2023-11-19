@@ -5,7 +5,7 @@ import { Callout } from 'nextra-theme-docs';
 Hooks are the place that you can add your own code to the default behavior or DryerJS.
 Below is a example of a hook that will be called before a new Tag is created. If the tag already exists, it will throw an error.
 
-```ts
+```ts copy
 @Hook(() => Tag)
 class TagHook implements Hook<Tag> {
   constructor(@InjectModel('Tag') private readonly Tag: Model<Tag>) {}
@@ -32,7 +32,7 @@ export class AppModule {}
 
 Below is the hook interface. You can implement any of the methods you want.
 
-```ts
+```ts copy
 export interface Hook<T = any, Context = any> {
   beforeCreate?(input: { ctx: Context; input: Partial<T>; definition: Definition }): Promise<void>;
 
@@ -105,7 +105,7 @@ export interface Hook<T = any, Context = any> {
 ## Customize Context
 
 There is a `ctx` in every hook. By default, the value is an object which looks like below.
-```ts
+```ts copy
 { req: express.Request }
 ```
 
@@ -117,7 +117,7 @@ In NestJS world, it's common practice to attach properties to the `request`.
 In side your `Guard`, you can add `user` to `req`,
 and then create a custom parameter to use it in controllers or resolvers:
 
-```ts
+```ts copy
 @Injectable()
 export class MustBeUser implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -146,7 +146,7 @@ export class TagResolver {
 
 You can set the parameter decorator that returns the context object when calling `DryerModule.register`.
 
-```ts
+```ts copy
 export const Ctx = createParamDecorator((_data: unknown, ctx: ExecutionContext) => {
   return GqlExecutionContext.create(ctx).getContext().req.user || null;
 });
@@ -190,7 +190,7 @@ export class AppModule {}
 
 You can also create a general hook that will be called for all models.
 
-```ts
+```ts copy
 @Hook(() => AllDefinitions)
 class GeneralHook implements Hook {
   async beforeCreate({ input }: BeforeCreateHookInput) {
@@ -211,7 +211,7 @@ It also remove related documents when remove mode is `CleanUpRelationsAfterRemov
 
 You can skip the default hook by setting `skipDefaultHookMethods` in `@Definition` decorator.
 
-```ts
+```ts copy
 @Definition({
   skipDefaultHookMethods: [
     'beforeCreate',

@@ -4,7 +4,7 @@ import { Callout } from 'nextra-theme-docs';
 
 ## Usage
 
-```ts
+```ts copy
 import { Property, Thunk } from 'dryerjs';
 import { MaxLength } from 'class-validator';
 import { MaxLength } from 'class-validator';
@@ -30,6 +30,6 @@ Using `@Transform` directly on the property will <b>NOT</b> work
 You can pass the `scopes` option to the `@Thunk` decorator to specify which scopes the decorator should be applied to.
 `scopes` can be `input`, `create`, `update`, `output` or `all`. Scope `input` will be applied to both `create` and `update` scopes. If you don't specify any scopes, the decorator will be applied to all scopes.
 
-```ts
+```ts copy
 export type ThunkScope = 'all' | 'create' | 'update' | 'input' | 'output';
 ```

@@ -6,7 +6,7 @@ If you have not read the [HasMany](/guides/relations/has-many) guide, please do 
 
 From the example on [HasMany](/guides/relations/has-many), you can add `@BelongsTo` to define the `Product` to `Store` relationship.
 
-```ts
+```ts copy
 @Definition()
 export class Product {
   @Id()
@@ -27,7 +27,7 @@ export class Product {
 
 You will be able to resolve the `store` field on the `Product` type.
 
-```graphql
+```graphql copy
 query {
   product(id: "000000000000000000000000") {
     id
@@ -45,7 +45,7 @@ query {
   To prevent resolving the `store` field, set `noPopulation` to `true`.
 </Callout>
 
-```ts
+```ts copy
 @Definition()
 export class Product {
   @BelongsTo(() => Store, { from: 'storeId', noPopulation: true })
@@ -57,7 +57,7 @@ export class Product {
 
 By default, you cannot create a `Product` with a `storeId` that does not exist. You can change this behavior by setting the `skipExistenceCheck` option to `true`.
 
-```ts
+```ts copy
 @Definition()
 export class Product {
   @BelongsTo(() => Store, { from: 'storeId', skipExistenceCheck: true })

@@ -5,7 +5,7 @@ import { Callout } from 'nextra-theme-docs';
 Below is how you can define a `HasMany` relationship.
 
 
-```ts
+```ts copy
 @Definition()
 export class Product {
   @Id()
@@ -46,7 +46,7 @@ Because of that we have to define a `storeId` property on the `Product` class. T
 
 ## Create API
 
-```graphql
+```graphql copy
 mutation {
   createProduct(input: {
     name: "Awsome Product",
@@ -72,7 +72,7 @@ mutation {
   To prevent resolving the `featureImage` field, set `noPopulation` to `true`.
 </Callout>
 
-```ts
+```ts copy
 @Definition()
 export class Product {
   @HasOne(() => FeatureImage, {
