@@ -1,3 +1,169 @@
+import { Callout } from 'nextra-theme-docs';
+
 # Bulk APIs
 
-Coming soon...
+Reuse the `Tag` example on the [CRUD APIs](/guides/crud-apis) section.
+
+```ts
+import { Id, ObjectId, Property, Definition } from 'dryerjs';
+
+@Definition({ allowedApis: '*' })
+export class Tag {
+  @Id()
+  id: ObjectId;
+
+  @Property()
+  name: string;
+}
+```
+
+## Enable Bulk APIs
+
+`Bulk APIs` are not enabled by default. To enable them, you need to set the `allowedApis` property to `*` or list the name of APIs you want.
+
+```ts
+@Definition({
+  allowedApis: [
+    'essentials',
+    'bulkCreate',
+    'bulkUpdate',
+    'bulkRemove',
+  ],
+})
+export class Tag {}
+```
+
+## Generated Bulk APIs
+
+### Bulk Create API
+
+```graphql
+mutation {
+  bulkCreateTags(inputs: [
+    { name: "Large" },
+    { name: "Medium" }
+  ]) {
+    input
+    success
+    errorMessage
+    result {
+      id
+      name
+    }
+  }
+}
+```
+
+The output of the `bulkCreateTags` mutation is an array of `BulkResult` objects. Each `BulkResult` object contains the input, the success status, the error message (if any), and the result of the operation.
+
+```json
+{
+  "data": {
+    "bulkCreateTags": [
+      {
+        "input": {
+          "name": "Large"
+        },
+        "success": true,
+        "errorMessage": null,
+        "result": {
+          "id": "000000000000000000000000",
+          "name": "Large"
+        }
+      },
+      {
+        "input": {
+          "name": "Medium"
+        },
+        "success": false,
+        "errorMessage": "Tag name must be unique",
+        "result": null
+      }
+    ]
+  }
+}
+```
+
+### Bulk Update API
+
+```graphql
+  mutation {
+    bulkUpdateTags(inputs: [
+    { id: "000000000000000000000000", name: "Large" },
+    { id: "000000000000000000000001", name: "Medium" }
+  ]){
+      input
+      success
+      errorMessage
+      result {
+        id
+        name
+      }
+    }
+  }
+```
+
+### Bulk Remove API
+
+```graphql
+  mutation {
+    bulkRemoveTags(ids: [
+      "000000000000000000000000",
+      "000000000000000000000001"
+    ]){
+      input
+      success
+      errorMessage
+      result {
+        id
+        name
+      }
+    }
+  }
+```
+
+## Handle errors
+
+There can be expected and unexpected errors when using `Bulk APIs`.
+With `BulkErrorHandler` you can response to both types of errors in a way that suits your application.
+Below is an example of how to implement `BulkErrorHandler` and register it as a provider.
+
+```ts
+@Injectable()
+class MyBulkErrorHandler implements BulkErrorHandler<Context> {
+  async handleCreateError(
+    input: { ctx: Context; input: any; definition: Definition },
+    error: Error,
+  ): Promise<void> {
+    console.log('handleCreateError', input, error);
+  }
+
+  async handleUpdateError(
+    input: { ctx: Context; input: any; definition: Definition },
+    error: Error,
+  ): Promise<void> {
+    console.log('handleUpdateError', input, error);
+  }
+
+  async handleRemoveError(
+    input: {
+      ctx: Context;
+      id: ObjectId;
+      definition: Definition;
+      options: RemoveOptions;
+    },
+    error: Error,
+  ): Promise<void> {
+    console.log('handleUpdateError', input, error);
+  }
+}
+
+@Module({
+  // other configs
+  providers: [{
+    provide: BULK_ERROR_HANDLER,
+    useClass: MyBulkErrorHandler,
+  }],
+})
+export class AppModule {}
+```
