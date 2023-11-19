@@ -54,8 +54,8 @@ mutation {
   createAuthor(input: {
     name: "Joanne Rowling"
     books: [
-      { name: "Harry Potter and the Philosopher's Stone" }
-      { name: "Harry Potter and the Chamber of Secrets" }
+      { name: "The Philosopher's Stone" }
+      { name: "The Chamber of Secrets" }
     ]
   }) {
     id
@@ -74,7 +74,7 @@ You will be able to update author and books as well.
 
 ```graphql copy
 mutation {
-  createAuthor(input: {
+  updateAuthor(input: {
     id: "000000000000000000000000",
     name: "J. K. Rowling"
     books: [
@@ -101,18 +101,18 @@ If there are more books in the database than the ones you are sending, the extra
 ### Create embedded API
 
 ```graphql copy
-  mutation {
-    createAuthorBooks(
-      authorId: '000000000000000000000000'
-      inputs: [
-        { name: "Harry Potter and the Prisoner of Azkaban" }
-        { name: "Harry Potter and the Goblet of Fire" }
-      ]
-    ) {
-      id
-      name
-    }
+mutation {
+  createAuthorBooks(
+    authorId: "000000000000000000000000"
+    inputs: [
+      { name: "The Prisoner of Azkaban" }
+      { name: "The Goblet of Fire" }
+    ]
+  ) {
+    id
+    name
   }
+}
 ```
 
 <Callout>
@@ -123,18 +123,18 @@ Only newly created books will be returned.
 ### Update embedded API
 
 ```graphql copy
-  mutation {
-    updateAuthorBooks(
-      authorId: '000000000000000000000000'
-      inputs: [
-        { id: '111111111111111111111111', name: "Harry Potter and the Prisoner of Azkaban" }
-        { id: '222222222222222222222222', name: "Harry Potter and the Goblet of Fire" }
-      ]
-    ) {
-      id
-      name
-    }
+mutation {
+  updateAuthorBooks(
+    authorId: "000000000000000000000000"
+    inputs: [
+      { id: "111111111111111111111111", name: "Harry Potter and the Prisoner of Azkaban" }
+      { id: "222222222222222222222222", name: "Harry Potter and the Goblet of Fire" }
+    ]
+  ) {
+    id
+    name
   }
+}
 ```
 
 <Callout>
@@ -144,44 +144,44 @@ Only books with listed ids will be returned, other books will stay the same but 
 ### Remove embedded API
 
 ```graphql copy
-  mutation {
-    removeAuthorBooks(
-      authorId: '000000000000000000000000'
-      bookIds: [
-        '111111111111111111111111'
-        '222222222222222222222222'
-      ]
-    ) {
-      success
-    }
+mutation {
+  removeAuthorBooks(
+    authorId: "000000000000000000000000"
+    ids: [
+      "111111111111111111111111",
+      "222222222222222222222222"
+    ]
+  ) {
+    success
   }
+}
 ```
 
 ### Find one embedded API
 
 ```graphql copy
-  query {
-    authorBook(
-      authorId: '000000000000000000000000'
-      bookId: '111111111111111111111111'
-    ) {
-      id
-      name
-    }
+query {
+  authorBook(
+    authorId: "000000000000000000000000"
+    id: "111111111111111111111111"
+  ) {
+    id
+    name
   }
+}
 ```
 
 ### Find all embedded API
 
 ```graphql copy
-  query {
-    authorBooks(
-      authorId: '000000000000000000000000'
-    ) {
-      id
-      name
-    }
+query {
+  authorBooks(
+    authorId: "000000000000000000000000"
+  ) {
+    id
+    name
   }
+}
 ```
 
 ## Whitelist APIs
@@ -224,7 +224,7 @@ export class Car {
 
 ## Multi-level Embedded
 
-You can embed documents inside other embedded documents but the embedded APIs will only work for the first level.
+You can embed documents inside other embedded documents but the embedded APIs will only be generated for the first level.
 As on the example below, Author will have embedded Books and Books will have embedded Reviews.
 
 ```ts copy
@@ -249,7 +249,7 @@ export class Book {
   reviews: Review[];
 }
 
-@Definition({ allowedApis: '*' })
+@Definition()
 export class Author {
   @Id()
   id: ObjectId;
@@ -268,19 +268,28 @@ export class Author {
 You should read the [Authentication](/docs/authentication) section before this one.
 </Callout>
 
-You can add any decorators for embedded APIs including Authentication decorators.
+You can add any decorators for embedded APIs not just Authentication related decorators.
 
 ```ts copy
-import { UseGuards } from '@nestjs/common';
+@Injectable()
+export class MustBeUser implements CanActivate {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    return (
+      GqlExecutionContext.create(context)
+        .getContext()
+        .req.header('user-role') === 'user'
+    );
+  }
+}
 
 @Definition()
 export class Author {
-  @Embedded(() => Book, { resolverDecorators: { remove: UseGuards(UserOnly) } })
+  @Embedded(() => Book, { resolverDecorators: { remove: UseGuards(MustBeUser) } })
   books: Book[];
 }
 ```
 
-The example above will add the `@UseGuards(UserOnly)` decorator to the `removeAuthorBooks` resolver.
+The example above will add the `@UseGuards(MustBeUser)` decorator to the `removeAuthorBooks` resolver.
 You can add decorators for other APIs as well. The `resolverDecorators` object has the following structure:
 
 ```ts copy
@@ -308,10 +317,10 @@ import { UseGuards } from '@nestjs/common';
 @Definition()
 export class Author {
   @Embedded(() => Book, {
-    onSchema: (schema) => {
-      schema.statics.findByName = function(name) {
-        return this.find({ name: new RegExp(name, 'i') });
-      }
+    onSubSchema: (schema) => {
+      schema.virtual('fullname').get(function() {
+        return this.name;
+      });
     }
   })
   books: Book[];

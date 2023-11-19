@@ -5,11 +5,15 @@ import { Callout } from 'nextra-theme-docs';
 ## Usage
 
 ```ts copy
-import { Property, Thunk } from 'dryerjs';
+import { Definition, Property, Thunk, Id, ObjectId } from 'dryerjs';
 import { MaxLength } from 'class-validator';
-import { MaxLength } from 'class-validator';
+import { Transform } from 'class-transformer';
 
+@Definition()
 export class Tag {
+  @Id()
+  id: ObjectId;
+
   @Thunk(MaxLength(100), { scopes: 'input' })
   @Thunk(Transform(({ value }) => value.trim()))
   @Thunk(Transform(({ value }) => value.toLowerCase()), { scopes: 'output' })

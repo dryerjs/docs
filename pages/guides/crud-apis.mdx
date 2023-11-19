@@ -73,7 +73,6 @@ mutation {
 ```graphql copy
 mutation {
   removeTag(id: "000000000000000000000000") {
-    id
     success
   }
 }
@@ -96,9 +95,7 @@ query {
     page
     limit
     totalPages
-    nextPage
     hasPrevPage
-    prevPage
     pagingCounter
   }
 }
@@ -118,7 +115,7 @@ query {
 ```
 
 <Callout>
-Warning: This query will return all documents in the collection. Use with caution. This API is not turned on by default. You can turn it on by adding `findAll` into `allowedApis` in the `@Definition` decorator.
+Warning: This query will return all documents in the collection. Use with caution. This API is not enabled by default. You can enable it by using [Whitelist APIs](#whitelist-apis).
 </Callout>
 
 There will be `filter` and `sort` arguments which will be covered in the [Filter and Sort](/Guides/filter-and-sort) section.
@@ -133,7 +130,17 @@ You can whitelist APIs by adding them into the `allowedApis` array in the `@Defi
 
 ```ts copy
 @Definition({
-  allowedApis: ['paginate', 'create', 'update', 'findOne', 'remove', 'findAll', 'bulkCreate', 'bulkUpdate', 'bulkRemove'],
+  allowedApis: [
+    'paginate',
+    'create',
+    'update',
+    'findOne',
+    'remove',
+    'findAll',
+    'bulkCreate',
+    'bulkUpdate',
+    'bulkRemove',
+  ],
 })
 export class Tag {}
 ```
