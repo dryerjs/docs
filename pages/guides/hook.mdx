@@ -170,17 +170,17 @@ export class AppModule {}
 ### beforeCreate & beforeUpdate
 
 * Add custom input validation (e.g. check if email is used so we can throw a better error)
-* Modify the input base on context (e.g. add `userId` from context to input so that the user does not need to input it)
+* Modify the input based on context (e.g. add `userId` from context to input so that the user does not need to input it)
 
 ### beforeFindOne & beforeFindMany
 
 * Validate filter (e.g. check if the user has permission to see the data)
-* Modify filter base on context (e.g. add `userId` from context to filter so that the user can only see their own data)
+* Modify filter based on context (e.g. add `userId` from context to filter so that the user can only see their own data)
 
 ### afterFindOne & afterFindMany
 
 * Validate the returned data (e.g. check if the user has permission to see the data)
-* Modify the returned data base on context (e.g. remove some fields that the user does not have permission to see)
+* Modify the returned data based on context (e.g. remove some fields that the user does not have permission to see)
 
 ### afterCreate & afterUpdate & afterRemove
 
