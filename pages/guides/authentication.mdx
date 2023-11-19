@@ -10,34 +10,47 @@ import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
 
 @Injectable()
-export class AdminGuard implements CanActivate {
+export class AdminOnly implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    return GqlExecutionContext.create(context).getContext().req.header('user-role') === 'admin';
+    return (
+      GqlExecutionContext.create(context)
+        .getContext()
+        .req.header('user-role') === 'admin'
+    );
   }
 }
 
 @Injectable()
-export class UserGuard implements CanActivate {
+export class UserOnly implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const role = GqlExecutionContext.create(context).getContext().req.header('user-role');
+    const role = GqlExecutionContext.create(context)
+      .getContext()
+      .req.header('user-role');
     return role === 'admin' || role === 'user';
   }
 }
 
 @Definition({
+  allowedApis: ['*'],
   resolverDecorators: {
-    create: [UseGuards(AdminOnly)],
+    write: [UseGuards(AdminOnly)],
     read: [UseGuards(UserOnly)],
-  }
+  },
 })
-class Announcement {}
+class Announcement {
+  @Id()
+  id: ObjectId;
+
+  @Property()
+  name: string;
+}
 ```
 
 The example above will:
 
 * Get user role from `user-role` header
-* Only allow `admin` to create `Announcement`
-* Only allow `admin` and `user` to read (`findOne`, `findAll` and `paginate`) `Announcement`
+* Only allow `admin` to `write` `Announcement`
+* Only allow `user` to `read` `Announcement`
 
 You can use `default`, `write`, `read` to reduce the amount of decorators you need to write.
 More specific decorators will override less specific decorators.
