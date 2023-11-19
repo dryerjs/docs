@@ -131,21 +131,21 @@ Below is an example of how to implement `BulkErrorHandler` and register it as a 
 ```ts
 @Injectable()
 class MyBulkErrorHandler implements BulkErrorHandler<Context> {
-  handleCreateError(
+  async handleCreateError(
     input: { ctx: Context; input: any; definition: Definition },
     error: Error,
   ): Promise<void> {
     console.log('handleCreateError', input, error);
   }
 
-  handleUpdateError(
+  async handleUpdateError(
     input: { ctx: Context; input: any; definition: Definition },
     error: Error,
   ): Promise<void> {
     console.log('handleUpdateError', input, error);
   }
 
-  handleRemoveError(
+  async handleRemoveError(
     input: {
       ctx: Context;
       id: ObjectId;
