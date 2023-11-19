@@ -1,3 +1,318 @@
 # JWT
 
-Coming soon...
+This recipe shows how to use NestJS JWT module to implement authentication with DryerJS.
+
+## Installation
+
+```bash
+$ npm install @nestjs/jwt --save
+```
+
+1. Import JWT Module
+
+```typescript
+// src/app.module.ts
+
+import { Module } from "@nestjs/common";
+import { GraphQLModule } from "@nestjs/graphql";
+import { ApolloDriver, ApolloDriverConfig } from "@nestjs/apollo";
+import { MongooseModule } from "@nestjs/mongoose";
+import { DryerModule } from "dryerjs";
+import { JwtModule } from "@nestjs/jwt";
+
+import { User } from "./user";
+
+@Module({
+  imports: [
+    GraphQLModule.forRoot<ApolloDriverConfig>({
+      driver: ApolloDriver,
+      autoSchemaFile: true,
+      playground: true,
+    }),
+    MongooseModule.forRoot("mongodb://127.0.0.1:27017/test"),
+    DryerModule.register({ definitions: [User] }),
+    JwtModule.register({
+      secret: "JWT_SECRET",
+      signOptions: { expiresIn: "7d" },
+    }),
+  ],
+})
+export class AppModule {}
+```
+
+2. Create a `UserService`
+
+```typescript
+// src/services/user.service.ts
+
+import { Model } from "mongoose";
+import { Injectable } from "@nestjs/common";
+import { InjectModel } from "@nestjs/mongoose";
+import { User } from "src/models";
+
+@Injectable()
+export class UserService {
+  constructor(@InjectModel("User") private user: Model<User>) {}
+
+  public async findOneById(id: string): Promise<User> {
+    return this.user.findById(id);
+  }
+
+  public async findOneByEmail(email: string): Promise<User> {
+    return this.user.findOne({ email });
+  }
+}
+```
+
+3. Create `AuthService`
+
+```typescript
+// src/services/auth.service.ts
+
+import { Injectable, UnauthorizedException } from "@nestjs/common";
+import { JwtService } from "@nestjs/jwt";
+import { SignupInput } from "src/dtos/user.dtos";
+import { User } from "src/models";
+import { UserService } from "src/services/user.service";
+
+@Injectable()
+export class AuthService {
+  constructor(
+    private userService: UserService,
+    private jwtService: JwtService
+  ) {}
+
+  public async login(email: string, password: string) {
+    const user = await this.userService.findOneByEmail(email);
+    if (!user) {
+      throw new UnauthorizedException("User doesn't exist");
+    }
+    if (user.password !== password) {
+      throw new UnauthorizedException("Invalid email or password");
+    }
+    const payload = { sub: user.id, email: user.email };
+    const accessToken = await this.jwtService.signAsync(payload);
+    return { accessToken };
+  }
+
+  public async signup(email: string, password: string) {
+    const user = await this.userService.create({ email, password });
+    const payload = { sub: user.id, email: user.email };
+    const accessToken = await this.jwtService.signAsync(payload);
+    return { accessToken };
+  }
+
+  public async verifyAndGetUser(token: string): Promise<User | null> {
+    const payload = await this.jwtService.verifyAsync(token);
+    if (!payload.sub) return null;
+    const user = await this.userService.findOneById(payload.sub);
+    return user;
+  }
+}
+```
+
+4. Import `AuthService` and `UserService` in `AppModule`
+
+```typescript
+// src/app.module.ts
+
+@Module({
+  imports: [
+    ...
+  ],
+  providers: [AuthService, UserService],
+})
+export class AppModule {}
+```
+
+5. Create custom graphql context
+
+```typescript
+// src/customContext.ts
+
+import { Request, Response } from "express";
+import type { User } from "src/models";
+
+export class CustomContext {
+  private _req: Request;
+  private _res: Response;
+  private _user: User;
+
+  constructor(req: Request, res: Response) {
+    this._req = req;
+    this._res = res;
+  }
+
+  public get req(): Request {
+    return this._req;
+  }
+
+  public setUser(user: User) {
+    this._user = user;
+  }
+
+  public get user(): User {
+    return this._user;
+  }
+}
+
+export const customContext = async ({ req, res }): Promise<CustomContext> => {
+  return new CustomContext(req, res);
+};
+```
+
+6. Add custom context to `GraphQLModule`
+
+```typescript
+// src/app.module.ts
+
+@Module({
+  imports: [
+    GraphQLModule.forRoot<ApolloDriverConfig>({
+      ...
+      context: customContext,
+    }),
+  ],
+  exports: [GraphQLModule],
+})
+export class AppModule {}
+```
+
+7. Create `AuthResolver`
+
+```typescript
+// src/resolvers/auth.resolver.ts
+
+import { OutputType } from "dryerjs";
+import { Resolver, Mutation, Args } from "@nestjs/graphql";
+import { AuthService } from "src/services/auth.service";
+
+@Resolver()
+export class AuthResolver {
+  constructor(private authService: AuthService) {}
+
+  @Mutation()
+  public async login(
+    @Args("email") email: string,
+    @Args("password") password: string
+  ) {
+    return this.authService.login(email, password);
+  }
+
+  @Mutation()
+  public async signup(
+    @Args("email") email: string,
+    @Args("password") password: string
+  ) {
+    return this.authService.signup(email, password);
+  }
+}
+```
+
+8. Add `AuthResolver` to `AppModule`
+
+````typescript
+// src/app.module.ts
+
+import { AuthResolver } from "src/resolvers/auth.resolver";
+
+@Module({
+  imports: [
+    ...
+  ],
+  providers: [AuthService, UserService, AuthResolver],
+})
+```
+
+9. Create `AuthGuard`
+
+```typescript
+// src/guards/auth.guard.ts
+
+import { Injectable, CanActivate, ExecutionContext } from "@nestjs/common";
+import { GqlExecutionContext } from "@nestjs/graphql";
+import { AppContext } from "src/customContext";
+import { AuthService } from "src/services/auth.service";
+
+@Injectable()
+export class AuthGuard implements CanActivate {
+  constructor(private readonly authService: AuthService) {}
+
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    const ctx: AppContext = GqlExecutionContext.create(context).getContext();
+    const authorization = ctx.req.headers.authorization;
+    if (authentication) {
+      const token = authorization.split(" ")[1]; // Bearer <token>
+      const user = await this.authService.verifyAndGetUser(token);
+      if (user) {
+        ctx.setUser(user);
+        return true;
+      }
+    }
+    return false;
+  }
+}
+````
+
+10. Use `AuthGuard`.
+
+Put `AuthGuard` in `AppModule` providers if you want to use it globally.
+
+```typescript
+// src/app.module.ts
+
+import AuthGuard from "src/guards/auth.guard";
+
+@Module({
+  ...
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
+    },
+  ],
+})
+export class AppModule {}
+```
+
+Or use it in a resolver to protect a specific query or mutation.
+
+```typescript
+// src/resolvers/user.resolver.ts
+
+import { Resolver, Query, Args } from "@nestjs/graphql";
+import { UseGuards } from "@nestjs/common";
+
+import { UserService } from "src/services/user.service";
+import { User } from "src/models";
+
+@Resolver()
+@UseGuards(AuthGuard)
+export class UserResolver {
+  @Query(() => OutputType(User), { name: "whoAmI" })
+  public async whoAmI(@Context() ctx: AppContext) {
+    return ctx.user;
+  }
+}
+```
+
+Or use it in the Model definition.
+
+```typescript
+// src/models/post.ts
+
+import { Definition } from "dryerjs";
+import { UseGuards } from "@nestjs/common";
+import { AuthGuard } from "src/guards/auth.guard";
+import { GuestGuard } from "src/guards/guest.guard";
+
+@Definition({
+  resolverDecorators: {
+    create: [UseGuards(AuthGuard)],
+    read: [UseGuards(GuestGuard)],
+    update: [UseGuards(AuthGuard)],
+    delete: [UseGuards(AuthGuard)],
+  },
+})
+class Post {}
+```
