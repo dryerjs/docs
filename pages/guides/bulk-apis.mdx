@@ -123,3 +123,47 @@ The output of the `bulkCreateTags` mutation is an array of `BulkResult` objects.
 ```
 
 ## Handle errors
+
+There can be expected and unexpected errors when using `Bulk APIs`.
+With `BulkErrorHandler` you can response to both types of errors in a way that suits your application.
+Below is an example of how to implement `BulkErrorHandler` and register it as a provider.
+
+```ts
+@Injectable()
+class MyBulkErrorHandler implements BulkErrorHandler<Context> {
+  handleCreateError(
+    input: { ctx: Context; input: any; definition: Definition },
+    error: Error,
+  ): Promise<void> {
+    console.log('handleCreateError', input, error);
+  }
+
+  handleUpdateError(
+    input: { ctx: Context; input: any; definition: Definition },
+    error: Error,
+  ): Promise<void> {
+    console.log('handleUpdateError', input, error);
+  }
+
+  handleRemoveError(
+    input: {
+      ctx: Context;
+      id: ObjectId;
+      definition: Definition;
+      options: RemoveOptions;
+    },
+    error: Error,
+  ): Promise<void> {
+    console.log('handleUpdateError', input, error);
+  }
+}
+
+@Module({
+  // other configs
+  providers: [{
+    provide: BULK_ERROR_HANDLER,
+    useClass: MyBulkErrorHandler,
+  }],
+})
+export class AppModule {}
+```
