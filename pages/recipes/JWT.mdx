@@ -2,11 +2,27 @@
 
 This recipe shows how to use NestJS JWT module to implement authentication with DryerJS.
 
+## Requirements
+
+* The system should have different user roles, like 'User' and 'Admin'.
+* Regular Users should not be able to grant themselves Admin privileges.
+* Users can update their own profile information.
+* Users must sign in to access certain features.
+The system should verify user identities and issue access tokens for signed-in users.
+
+
+* Only the creator of a post or an Admin can edit or update that post.
+* Unauthenticated (or public) users can only see publicly marked posts.
+* Regular users cannot see private posts created by other users but admins can.
+
 ## Installation
 
-```bash
+```bash copy
 $ npm install @nestjs/jwt --save
 ```
+
+## Implementation
+
 ```ts copy
 import { Request } from 'express';
 import {
