@@ -70,6 +70,7 @@ import {
   BeforeFindOneHookInput,
   AfterFindOneHookInput,
   BeforeRemoveHookInput,
+  BeforeFindManyHookInput,
 } from 'dryerjs';
 import { PaginateModel } from 'mongoose';
 import { JwtModule, JwtService } from '@nestjs/jwt';
@@ -98,6 +99,10 @@ export class RoleGuard implements CanActivate {
       .verifyAsync(req.header('Authorization')?.split(' ')?.[1])
       .catch(() => null);
 
+    if (ctx?.id) {
+      ctx.id = new ObjectId(ctx.id);
+    }
+
     req.ctx = ctx;
 
     const role = this.reflector.get(Role, executionContext.getHandler());
@@ -116,10 +121,14 @@ export class RoleGuard implements CanActivate {
   }
 }
 
-const UserOnly = () =>
-  applyDecorators(Role(UserRole.USER), UseGuards(RoleGuard));
-const AdminOnly = () =>
-  applyDecorators(Role(UserRole.ADMIN), UseGuards(RoleGuard));
+const UserOnly = () => {
+  return applyDecorators(Role(UserRole.USER), UseGuards(RoleGuard));
+};
+
+const AdminOnly = () => {
+  return applyDecorators(Role(UserRole.ADMIN), UseGuards(RoleGuard));
+};
+
 const PublicAccessWithRole = () => applyDecorators(UseGuards(RoleGuard));
 
 @Definition({
@@ -238,7 +247,7 @@ class PostHook implements Hook<Post, Context> {
   async beforeFindMany({
     ctx,
     filter,
-  }: BeforeFindOneHookInput<Post, Context>): Promise<void> {
+  }: BeforeFindManyHookInput<Post, Context>): Promise<void> {
     if (ctx === null) filter.isPublic = true;
     if (ctx?.role === UserRole.USER) {
       filter['$and'] = [
