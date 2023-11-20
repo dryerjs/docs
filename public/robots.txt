@@ -1,0 +1,9 @@
+# *
+User-agent: *
+Allow: /
+
+# Host
+Host: https://dryerjs.com
+
+# Sitemaps
+Sitemap: https://dryerjs.com/sitemap.xml
