@@ -4,3 +4,4 @@ node_modules
 .vscode
 public/sitemap.xml
 public/sitemap-0.xml
+.DS_Store

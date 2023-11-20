@@ -11,7 +11,7 @@ const config: DocsThemeConfig = {
     link: "https://discord.gg/mBZN86W5Fa",
   },
   feedback: {
-    useLink: () => 'https://github.com/dryerjs/dryerjs/issues/new/choose',
+    useLink: () => "https://github.com/dryerjs/dryerjs/issues/new/choose",
   },
   docsRepositoryBase: "https://github.com/dryerjs/docs/blob/master",
   footer: {
@@ -19,11 +19,34 @@ const config: DocsThemeConfig = {
   },
   primaryHue: 161,
   primarySaturation: 100,
+  head: null,
   useNextSeoProps() {
     return {
-      titleTemplate: '%s – DryerJS',
-      description: 'The fastest way to build a GraphQL API with NestJS and Mongoose',
-    }
+      titleTemplate: "%s – DryerJS",
+      description:
+        "The fastest way to build a GraphQL API with NestJS and Mongoose",
+      openGraph: {
+        type: "website",
+        url: "https://dryerjs.com",
+        title: "DryerJS",
+        description:
+          "The fastest way to build a GraphQL API with NestJS and Mongoose",
+        siteName: "DryerJS",
+        images: [
+          {
+            url: "https://dryerjs.com/logo-light.png",
+            width: 1106,
+            height: 237,
+            alt: "DryerJS",
+          },
+        ],
+      },
+      twitter: {
+        cardType: "summary_large_image",
+        site: "@dryerjs",
+        handle: "@dryerjs",
+      },
+    };
   },
 };
 
