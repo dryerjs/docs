@@ -1,1 +1,14 @@
-{}
+{
+  "events": {
+    "title": "Events",
+    "theme": {
+      "breadcrumb": false
+    }
+  },
+  "JWT": {
+    "title": "JWT",
+    "theme": {
+      "breadcrumb": false
+    }
+  }
+}

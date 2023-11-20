@@ -8,7 +8,10 @@ const config: DocsThemeConfig = {
     link: "https://github.com/dryerjs/dryerjs",
   },
   chat: {
-    link: "https://discord.gg/dcRkQ4e9",
+    link: "https://discord.gg/mBZN86W5Fa",
+  },
+  feedback: {
+    useLink: () => 'https://github.com/dryerjs/dryerjs/issues/new/choose',
   },
   docsRepositoryBase: "https://github.com/dryerjs/docs/blob/master",
   footer: {
