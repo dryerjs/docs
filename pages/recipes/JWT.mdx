@@ -2,317 +2,520 @@
 
 This recipe shows how to use NestJS JWT module to implement authentication with DryerJS.
 
+## Requirements
+
+* The system should have different user roles, like 'User' and 'Admin'.
+* Regular Users should not be able to grant themselves Admin privileges.
+* Users can update their own profile information.
+* Users must sign in to access certain features.
+The system should verify user identities and issue access tokens for signed-in users.
+
+
+* Only the creator of a post or an Admin can edit that post.
+* Unauthenticated (or public) users can only see publicly marked posts.
+* Regular users cannot see private posts created by other users but admins can.
+
 ## Installation
 
-```bash
+```bash copy
 $ npm install @nestjs/jwt --save
 ```
 
-1. Import JWT Module
+## Implementation
 
-```typescript
-// src/app.module.ts
+```ts copy
+import {
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+  Module,
+  NotFoundException,
+  OnModuleInit,
+  UnauthorizedException,
+  UseGuards,
+  applyDecorators,
+  createParamDecorator,
+} from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
+import {
+  Args,
+  Field,
+  GqlExecutionContext,
+  GraphQLModule,
+  Mutation,
+  PickType,
+  Query,
+  Resolver,
+  registerEnumType,
+  ObjectType,
+  InputType,
+} from '@nestjs/graphql';
+import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
+import { InjectModel, MongooseModule } from '@nestjs/mongoose';
+import {
+  BelongsTo,
+  CreateInputType,
+  Definition,
+  DryerModule,
+  GraphQLObjectId,
+  Id,
+  ObjectId,
+  OutputType,
+  Property,
+  Skip,
+  BaseService,
+  InjectBaseService,
+  Hook,
+  BeforeUpdateHookInput,
+  BeforeFindOneHookInput,
+  AfterFindOneHookInput,
+  BeforeRemoveHookInput,
+} from 'dryerjs';
+import { PaginateModel } from 'mongoose';
+import { JwtModule, JwtService } from '@nestjs/jwt';
+import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
 
-import { Module } from "@nestjs/common";
-import { GraphQLModule } from "@nestjs/graphql";
-import { ApolloDriver, ApolloDriverConfig } from "@nestjs/apollo";
-import { MongooseModule } from "@nestjs/mongoose";
-import { DryerModule } from "dryerjs";
-import { JwtModule } from "@nestjs/jwt";
+enum UserRole {
+  USER = 'USER',
+  ADMIN = 'ADMIN',
+}
 
-import { User } from "./user";
+registerEnumType(UserRole, { name: 'UserRole' });
+
+export const Role = Reflector.createDecorator<UserRole>();
+
+@Injectable()
+export class RoleGuard implements CanActivate {
+  constructor(
+    private readonly jwtService: JwtService,
+    private reflector: Reflector,
+  ) {}
+
+  async canActivate(executionContext: ExecutionContext): Promise<boolean> {
+    const { req } = GqlExecutionContext.create(executionContext).getContext();
+
+    const ctx = await this.jwtService
+      .verifyAsync(req.header('Authorization')?.split(' ')?.[1])
+      .catch(() => null);
+
+    req.ctx = ctx;
+
+    const role = this.reflector.get(Role, executionContext.getHandler());
+    if (!role) return true;
+    if (role === UserRole.ADMIN && ctx?.role !== UserRole.ADMIN) {
+      throw new UnauthorizedException('AdminOnly');
+    }
+    if (
+      role === UserRole.USER &&
+      ![UserRole.ADMIN, UserRole.USER].includes(ctx?.role)
+    ) {
+      throw new UnauthorizedException('UserOnly');
+    }
+
+    return true;
+  }
+}
+
+const UserOnly = () =>
+  applyDecorators(Role(UserRole.USER), UseGuards(RoleGuard));
+const AdminOnly = () =>
+  applyDecorators(Role(UserRole.ADMIN), UseGuards(RoleGuard));
+const PublicAccessWithRole = () => applyDecorators(UseGuards(RoleGuard));
+
+@Definition({
+  allowedApis: ['findOne', 'paginate', 'remove', 'update'],
+  resolverDecorators: {
+    update: [UserOnly()],
+    remove: [AdminOnly()],
+  },
+})
+export class User {
+  @Id()
+  id: ObjectId;
+
+  @Property()
+  email: string;
+
+  @Property({ db: { type: String, enum: UserRole } })
+  role: UserRole;
+
+  @Property()
+  name: string;
+
+  @Property({ output: Skip })
+  password: string;
+}
+
+@Definition({
+  allowedApis: 'essentials',
+  resolverDecorators: {
+    write: [UserOnly()],
+    read: [PublicAccessWithRole()],
+  },
+})
+export class Post {
+  @Id()
+  id: string;
+
+  @Property()
+  content: string;
+
+  @Property({ nullable: true, create: { defaultValue: true } })
+  isPublic: boolean;
+
+  @BelongsTo(() => User, { from: 'userId' })
+  user: User;
+
+  @Property({ type: () => GraphQLObjectId })
+  userId: ObjectId;
+}
+
+type Context = null | Pick<User, 'email' | 'id' | 'name' | 'role'>;
+
+const SYSTEM: Context = {
+  id: new ObjectId('999999999999999999999999'),
+  role: UserRole.ADMIN,
+  email: 'system@dryerjs.com',
+  name: 'system',
+};
+
+@Hook(() => User)
+class UserHook implements Hook<User, Context> {
+  async beforeUpdate({
+    ctx,
+    input,
+  }: BeforeUpdateHookInput<User, Context>): Promise<void> {
+    if (ctx.role === UserRole.USER && input.role === UserRole.ADMIN) {
+      throw new UnauthorizedException('YOU_WERE_CAUGHT');
+    }
+  }
+}
+
+@Hook(() => Post)
+class PostHook implements Hook<Post, Context> {
+  async beforeUpdate({
+    ctx,
+    beforeUpdated,
+  }: BeforeUpdateHookInput<Post, Context>): Promise<void> {
+    if (
+      ctx?.role === UserRole.USER &&
+      beforeUpdated.id.toString() !== ctx.id.toString()
+    ) {
+      throw new UnauthorizedException('YOU_WERE_CAUGHT');
+    }
+  }
+
+  async beforeRemove({
+    ctx,
+    beforeRemoved,
+  }: BeforeRemoveHookInput<Post, Context>): Promise<void> {
+    if (
+      ctx?.role === UserRole.USER &&
+      beforeRemoved.id.toString() !== ctx.id.toString()
+    ) {
+      throw new UnauthorizedException('YOU_WERE_CAUGHT');
+    }
+  }
+
+  async beforeFindOne({
+    ctx,
+    filter,
+  }: BeforeFindOneHookInput<Post, Context>): Promise<void> {
+    if (ctx === null) filter.isPublic = true;
+  }
+
+  async afterFindOne({
+    ctx,
+    result,
+  }: AfterFindOneHookInput<Post, Context>): Promise<void> {
+    if (result.isPublic) return;
+    if (ctx?.role === UserRole.ADMIN) return;
+    if (result.userId.toString() !== ctx.id.toString()) {
+      throw new NotFoundException();
+    }
+  }
+
+  async beforeFindMany({
+    ctx,
+    filter,
+  }: BeforeFindOneHookInput<Post, Context>): Promise<void> {
+    if (ctx === null) filter.isPublic = true;
+    if (ctx?.role === UserRole.USER) {
+      filter['$and'] = [
+        {
+          $or: [
+            { userId: ctx.id },
+            { userId: { $ne: ctx.id }, isPublic: true },
+          ],
+        },
+      ];
+    }
+  }
+}
+
+export const Ctx = createParamDecorator(
+  (_data: unknown, executionContext: ExecutionContext) => {
+    const { req } = GqlExecutionContext.create(executionContext).getContext();
+    if (req.ctx) return req.ctx as Context;
+    return null;
+  },
+);
+
+@ObjectType()
+class AccessTokenResponse {
+  @Field()
+  accessToken: string;
+}
+
+@InputType()
+class SignInInput extends PickType(CreateInputType(User), [
+  'email',
+  'password',
+]) {
+  @Field({ nullable: true })
+  remember: boolean;
+}
+
+@Resolver()
+export class AuthResolver {
+  constructor(
+    @InjectBaseService(User) public userService: BaseService<User, Context>,
+    private readonly jwtService: JwtService,
+  ) {}
+
+  @Mutation(() => AccessTokenResponse)
+  async signIn(
+    @Args('input', {
+      type: () => SignInInput,
+    })
+    input: Pick<User, 'email' | 'password'>,
+  ) {
+    const user = await this.userService.findOne(SYSTEM, {
+      email: input.email,
+    });
+    if (user.password !== input.password) {
+      throw new UnauthorizedException('Invalid email or password');
+    }
+    const accessToken = await this.jwtService.signAsync({
+      id: user.id.toString(),
+      role: user.role,
+      email: user.email,
+      name: user.name,
+    });
+    return { accessToken };
+  }
+
+  @UserOnly()
+  @Query(() => OutputType(User))
+  async whoAmI(@Ctx() ctx: Context) {
+    const user = await this.userService.findOne(ctx, { _id: ctx.id });
+    if (user === null) {
+      throw new UnauthorizedException();
+    }
+    return user;
+  }
+}
+
+@Injectable()
+export class SeederService implements OnModuleInit {
+  constructor(
+    @InjectModel('User') readonly User: PaginateModel<User>,
+    @InjectModel('Post') readonly Post: PaginateModel<User>,
+  ) {}
+
+  async onModuleInit() {
+    if ((await this.User.countDocuments({})) !== 0) return;
+    console.log('Seeding...');
+    const adminUserId = new ObjectId('000000000000000000000000');
+    const normalUserId = new ObjectId('000000000000000000000001');
+    const users = [
+      {
+        _id: adminUserId,
+        email: 'admin@dryerjs.com',
+        password: 'password',
+        name: 'Admin@DryerJS',
+        role: UserRole.ADMIN,
+      },
+      {
+        _id: new ObjectId('000000000000000000000001'),
+        email: 'user@dryerjs.com',
+        password: 'password',
+        name: 'User@DryerJS',
+        role: UserRole.USER,
+      },
+    ];
+    const posts = [
+      {
+        _id: new ObjectId('000000000000000000000002'),
+        content: 'Admin public announcement',
+        isPublic: true,
+        userId: adminUserId,
+      },
+      {
+        _id: new ObjectId('000000000000000000000003'),
+        content: 'Admin private note',
+        isPublic: false,
+        userId: adminUserId,
+      },
+      {
+        _id: new ObjectId('000000000000000000000004'),
+        content: 'User public note',
+        isPublic: true,
+        userId: normalUserId,
+      },
+      {
+        _id: new ObjectId('000000000000000000000005'),
+        content: 'User private note',
+        isPublic: false,
+        userId: normalUserId,
+      },
+    ];
+    for (const user of users) await this.User.create(user);
+    for (const post of posts) await this.Post.create(post);
+  }
+}
 
 @Module({
   imports: [
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: true,
-      playground: true,
+      playground: false,
+      plugins: [ApolloServerPluginLandingPageLocalDefault()],
     }),
-    MongooseModule.forRoot("mongodb://127.0.0.1:27017/test"),
-    DryerModule.register({ definitions: [User] }),
+    MongooseModule.forRoot('mongodb://127.0.0.1:27017/dryerjs-jwt'),
+    DryerModule.register({
+      definitions: [User, Post],
+      contextDecorator: Ctx,
+      hooks: [UserHook, PostHook],
+    }),
     JwtModule.register({
-      secret: "JWT_SECRET",
-      signOptions: { expiresIn: "7d" },
+      global: true,
+      secret: 'DO_NOT_TELL_ANYONE',
+      signOptions: { expiresIn: '7d' },
     }),
   ],
+  providers: [AuthResolver, SeederService, RoleGuard],
 })
 export class AppModule {}
 ```
 
-2. Create a `UserService`
+## Sample queries
 
-```typescript
-// src/services/user.service.ts
+### Sign in
 
-import { Model } from "mongoose";
-import { Injectable } from "@nestjs/common";
-import { InjectModel } from "@nestjs/mongoose";
-import { User } from "src/models";
-
-@Injectable()
-export class UserService {
-  constructor(@InjectModel("User") private user: Model<User>) {}
-
-  public async findOneById(id: string): Promise<User> {
-    return this.user.findById(id);
-  }
-
-  public async findOneByEmail(email: string): Promise<User> {
-    return this.user.findOne({ email });
+```graphql copy
+mutation {
+  signIn(input: {
+    email: "admin@dryerjs.com"
+    password: "password"
+  }) {
+    accessToken
   }
 }
 ```
 
-3. Create `AuthService`
+### Paginate users
 
-```typescript
-// src/services/auth.service.ts
+This is a public API. You don't need to set `Authorization` header.
 
-import { Injectable, UnauthorizedException } from "@nestjs/common";
-import { JwtService } from "@nestjs/jwt";
-import { SignupInput } from "src/dtos/user.dtos";
-import { User } from "src/models";
-import { UserService } from "src/services/user.service";
-
-@Injectable()
-export class AuthService {
-  constructor(
-    private userService: UserService,
-    private jwtService: JwtService
-  ) {}
-
-  public async login(email: string, password: string) {
-    const user = await this.userService.findOneByEmail(email);
-    if (!user) {
-      throw new UnauthorizedException("User doesn't exist");
+```graphql copy
+query PaginateUsers {
+  paginateUsers {
+    docs {
+      id
+      role
+      name
+      email
     }
-    if (user.password !== password) {
-      throw new UnauthorizedException("Invalid email or password");
+    totalDocs
+  }
+}
+```
+
+### Find one user
+
+This is a public API. You don't need to set `Authorization` header.
+
+```graphql copy
+query User($userId: ObjectId!) {
+  user(id: $userId) {
+    email
+    id
+    name
+    role
+  }
+}
+```
+
+### Update user
+
+User cannot update `role` field.
+
+```graphql copy
+mutation UpdateUser {
+  updateUser(input: {
+    id: "000000000000000000000000",
+    role: "ADMIN"
+  }) {
+    email
+    id
+    name
+    role
+  }
+}
+```
+
+### Remove user
+
+Only `ADMIN` can call this `API`.
+
+```graphql copy
+mutation RemoveUser {
+  removeUser(id: "000000000000000000000000") {
+    success
+  }
+}
+```
+
+### Paginate posts
+
+`ADMIN` can see all posts. `USER` can only see public posts and their own posts. `GUEST` can only see public posts.
+
+```graphql copy
+query PaginatedPost {
+  paginatePosts {
+    docs {
+      id
+      isPublic
+      content
     }
-    const payload = { sub: user.id, email: user.email };
-    const accessToken = await this.jwtService.signAsync(payload);
-    return { accessToken };
-  }
-
-  public async signup(email: string, password: string) {
-    const user = await this.userService.create({ email, password });
-    const payload = { sub: user.id, email: user.email };
-    const accessToken = await this.jwtService.signAsync(payload);
-    return { accessToken };
-  }
-
-  public async verifyAndGetUser(token: string): Promise<User | null> {
-    const payload = await this.jwtService.verifyAsync(token);
-    if (!payload.sub) return null;
-    const user = await this.userService.findOneById(payload.sub);
-    return user;
   }
 }
 ```
 
-4. Import `AuthService` and `UserService` in `AppModule`
+### Find one post
 
-```typescript
-// src/app.module.ts
+`admin@dryerjs.com` can see this post, he is the creator of this post also an `ADMIN`.
+`user@dryerjs.com` or `GUEST` cannot see this post because it is not public and they are not the creator of this post.
 
-@Module({
-  imports: [
-    ...
-  ],
-  providers: [AuthService, UserService],
-})
-export class AppModule {}
-```
-
-5. Create custom graphql context
-
-```typescript
-// src/customContext.ts
-
-import { Request, Response } from "express";
-import type { User } from "src/models";
-
-export class CustomContext {
-  private _req: Request;
-  private _res: Response;
-  private _user: User;
-
-  constructor(req: Request, res: Response) {
-    this._req = req;
-    this._res = res;
-  }
-
-  public get req(): Request {
-    return this._req;
-  }
-
-  public setUser(user: User) {
-    this._user = user;
-  }
-
-  public get user(): User {
-    return this._user;
-  }
-}
-
-export const customContext = async ({ req, res }): Promise<CustomContext> => {
-  return new CustomContext(req, res);
-};
-```
-
-6. Add custom context to `GraphQLModule`
-
-```typescript
-// src/app.module.ts
-
-@Module({
-  imports: [
-    GraphQLModule.forRoot<ApolloDriverConfig>({
-      ...
-      context: customContext,
-    }),
-  ],
-  exports: [GraphQLModule],
-})
-export class AppModule {}
-```
-
-7. Create `AuthResolver`
-
-```typescript
-// src/resolvers/auth.resolver.ts
-
-import { OutputType } from "dryerjs";
-import { Resolver, Mutation, Args } from "@nestjs/graphql";
-import { AuthService } from "src/services/auth.service";
-
-@Resolver()
-export class AuthResolver {
-  constructor(private authService: AuthService) {}
-
-  @Mutation()
-  public async login(
-    @Args("email") email: string,
-    @Args("password") password: string
-  ) {
-    return this.authService.login(email, password);
-  }
-
-  @Mutation()
-  public async signup(
-    @Args("email") email: string,
-    @Args("password") password: string
-  ) {
-    return this.authService.signup(email, password);
+```graphql copy
+query Post {
+  post(id: "000000000000000000000003") {
+    id
+    content
   }
 }
 ```
 
-8. Add `AuthResolver` to `AppModule`
+### Remove post
 
-````typescript
-// src/app.module.ts
+`ADMIN` can remove any post. `USER` can only remove their own posts. `GUEST` cannot remove any post.
 
-import { AuthResolver } from "src/resolvers/auth.resolver";
-
-@Module({
-  imports: [
-    ...
-  ],
-  providers: [AuthService, UserService, AuthResolver],
-})
-```
-
-9. Create `AuthGuard`
-
-```typescript
-// src/guards/auth.guard.ts
-
-import { Injectable, CanActivate, ExecutionContext } from "@nestjs/common";
-import { GqlExecutionContext } from "@nestjs/graphql";
-import { AppContext } from "src/customContext";
-import { AuthService } from "src/services/auth.service";
-
-@Injectable()
-export class AuthGuard implements CanActivate {
-  constructor(private readonly authService: AuthService) {}
-
-  async canActivate(context: ExecutionContext): Promise<boolean> {
-    const ctx: AppContext = GqlExecutionContext.create(context).getContext();
-    const authorization = ctx.req.headers.authorization;
-    if (authentication) {
-      const token = authorization.split(" ")[1]; // Bearer <token>
-      const user = await this.authService.verifyAndGetUser(token);
-      if (user) {
-        ctx.setUser(user);
-        return true;
-      }
-    }
-    return false;
+```graphql copy
+mutation RemovePost {
+  removePost(id: "000000000000000000000003") {
+    success
   }
 }
-````
-
-10. Use `AuthGuard`.
-
-Put `AuthGuard` in `AppModule` providers if you want to use it globally.
-
-```typescript
-// src/app.module.ts
-
-import AuthGuard from "src/guards/auth.guard";
-
-@Module({
-  ...
-  providers: [
-    {
-      provide: APP_GUARD,
-      useClass: AuthGuard,
-    },
-  ],
-})
-export class AppModule {}
-```
-
-Or use it in a resolver to protect a specific query or mutation.
-
-```typescript
-// src/resolvers/user.resolver.ts
-
-import { Resolver, Query, Args } from "@nestjs/graphql";
-import { UseGuards } from "@nestjs/common";
-
-import { UserService } from "src/services/user.service";
-import { User } from "src/models";
-
-@Resolver()
-@UseGuards(AuthGuard)
-export class UserResolver {
-  @Query(() => OutputType(User), { name: "whoAmI" })
-  public async whoAmI(@Context() ctx: AppContext) {
-    return ctx.user;
-  }
-}
-```
-
-Or use it in the Model definition.
-
-```typescript
-// src/models/post.ts
-
-import { Definition } from "dryerjs";
-import { UseGuards } from "@nestjs/common";
-import { AuthGuard } from "src/guards/auth.guard";
-import { GuestGuard } from "src/guards/guest.guard";
-
-@Definition({
-  resolverDecorators: {
-    create: [UseGuards(AuthGuard)],
-    read: [UseGuards(GuestGuard)],
-    update: [UseGuards(AuthGuard)],
-    delete: [UseGuards(AuthGuard)],
-  },
-})
-class Post {}
 ```
