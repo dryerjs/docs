@@ -4,8 +4,7 @@
     "theme": {
       "breadcrumb": false,
       "footer": true,
-      "sidebar": true,
-      "toc": false 
+      "sidebar": true
     }
   },
   "guides": { "title": "Guides" },
