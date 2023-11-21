@@ -34,9 +34,9 @@ const config: DocsThemeConfig = {
         siteName: "DryerJS",
         images: [
           {
-            url: "https://dryerjs.com/logo-light.png",
-            width: 1106,
-            height: 237,
+            url: "https://dryerjs.com/cover.jpg",
+            width: 1817,
+            height: 975,
             alt: "DryerJS",
           },
         ],
