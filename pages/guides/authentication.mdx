@@ -31,7 +31,6 @@ export class UserOnly implements CanActivate {
 }
 
 @Definition({
-  allowedApis: ['*'],
   resolverDecorators: {
     write: [UseGuards(AdminOnly)],
     read: [UseGuards(UserOnly)],
