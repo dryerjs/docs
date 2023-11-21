@@ -156,7 +156,6 @@ export class User {
 }
 
 @Definition({
-  allowedApis: 'essentials',
   resolverDecorators: {
     write: [UserOnly()],
     read: [PublicAccessWithRole()],

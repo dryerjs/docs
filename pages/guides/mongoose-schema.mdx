@@ -6,11 +6,10 @@ import { Callout } from 'nextra-theme-docs';
 
 ## Customization
 
-You can override the default behavior by using `@Schema` decorator.
+You can override the default behavior by using `schemaOptions` option on `@Definition` decorator.
 
 ```ts copy
-@Schema({ name: 'tag' })
-@Definition()
+@Definition({ schemaOptions: { timestamps: true } })
 class Tag {}
 ```
 
