@@ -1,0 +1,92 @@
+# Timestamps
+
+If you want to have automatic timestamps, you can add the `timestamps` option to the `@Definition` decorator.
+This will add `createdAt` and `updatedAt` properties to your class.
+Those properties will be automatically set when creating or updating an entity so you will likely want to skip them in the `create` and `update` scopes.
+
+## Usage
+
+```ts copy
+import { GraphQLISODateTime } from '@nestjs/graphql';
+
+@Definition({ timestamps: true })
+export class User {
+  @Id()
+  id: ObjectId;
+
+  @Property()
+  name: string;
+
+  @Property({
+    output: { type: () => GraphQLISODateTime },
+    create: Skip,
+    update: Skip,
+  })
+  createdAt: Date;
+
+  @Property({
+    output: { type: () => GraphQLISODateTime },
+    create: Skip,
+    update: Skip,
+  })
+  updatedAt: Date;
+}
+```
+
+## Reusable decorator
+
+You can define `@AutoTimestamp` decorator to reuse it on your properties
+
+```ts copy
+import { GraphQLISODateTime } from '@nestjs/graphql';
+
+export const AutoTimestamp = () => {
+  return Property({
+    output: { type: () => GraphQLISODateTime },
+    create: Skip,
+    update: Skip,
+  });
+}
+```
+
+```ts copy
+import { GraphQLISODateTime } from '@nestjs/graphql';
+
+@Definition({ timestamps: true })
+export class User {
+  @Id()
+  id: ObjectId;
+
+  @Property()
+  name: string;
+
+  @AutoTimestamp()
+  createdAt: Date;
+
+  @AutoTimestamp()
+  updatedAt: Date;
+}
+```
+
+## Using Base class
+
+You can have a base class with the `@Definition` decorator and extend it later to reduce duplication.
+
+```ts copy
+class Base {
+  @Id()
+  id: ObjectId;
+
+  @AutoTimestamp()
+  createdAt: Date;
+
+  @AutoTimestamp()
+  updatedAt: Date;
+}
+
+@Definition({ timestamps: true })
+export class User extends Base {
+  @Property()
+  name: string;
+}
+```
