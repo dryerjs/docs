@@ -191,7 +191,7 @@ You can also whitelist the APIs you want to allow for the embedded document. By 
 ```ts copy
 export class Author {
   @Embedded(() => Book, {
-    allowApis: ['create', 'update', 'remove', 'findOne', 'findAll'],
+    allowedApis: ['create', 'update', 'remove', 'findOne', 'findAll'],
   })
   books: Book[];
 }
