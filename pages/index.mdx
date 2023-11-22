@@ -31,12 +31,12 @@ npm i dryerjs
 3. Declare your first model on `src/user.ts`:
 
 ```ts copy
-import { Definition, Property, Id, Skip } from 'dryerjs';
+import { Definition, Property, Id, Skip, ObjectId } from 'dryerjs';
 
 @Definition()
 export class User {
   @Id()
-  id: string;
+  id: ObjectId;
 
   @Property()
   email: string;
