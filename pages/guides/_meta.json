@@ -17,6 +17,12 @@
       "breadcrumb": false
     }
   },
+  "timestamps": {
+    "title": "Timestamps",
+    "theme": {
+      "breadcrumb": false
+    }
+  },
   "transform-and-validate": {
     "title": "Transform & Validate",
     "theme": {
