@@ -104,6 +104,16 @@ export interface Hook<T = any, Context = any> {
     page?: number;
     definition: Definition;
   }): Promise<void>;
+
+  beforeWriteFilter?(input: {
+    ctx: Context;
+    filter: FilterQuery<T>;
+  }): Promise<void>;
+
+  beforeReadFilter?(input: {
+    ctx: Context;
+    filter: FilterQuery<T>;
+  }): Promise<void>;
 }
 ```
 
@@ -126,6 +136,20 @@ BeforeCreateHookInput
 BeforeFindManyHookInput
 AfterFindManyHookInput
 ```
+
+## Special hooks
+
+### beforeReadFilter
+
+`beforeReadFilter` will be called before `findMany` and `findOne`, `paginate`. This hook is called before `beforeFindOne` and `beforeFindMany`.
+
+### beforeWriteFilter
+
+`beforeWriteFilter` will be called before `update`, `remove`. This hook is called before `beforeUpdate`, `beforeRemove`.
+
+### beforeFindMany
+
+`beforeFindMany` will be called before `findMany` and `paginate` and after `beforeReadFilter`.
 
 ## Customize Context
 
@@ -210,6 +234,16 @@ export class AppModule {}
 ### afterCreate & afterUpdate & afterRemove
 
 * Emit events (e.g. send emails to users after they register)
+
+### beforeReadFilter
+
+* Same as `beforeFindOne` & `beforeFindMany` but will be called before `beforeFindOne` & `beforeFindMany`.
+This is helpful when you do not want to duplicate your code in `beforeFindOne` & `beforeFindMany`.
+
+### beforeWriteFilter
+
+* Modify filter based on context on `update` and `remove`
+(e.g. add `userId` from context to filter so that the user can only update or remove their own data)
 
 ## General Hook
 
