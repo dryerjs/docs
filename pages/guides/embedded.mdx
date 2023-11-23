@@ -326,3 +326,30 @@ export class Author {
   books: Book[];
 }
 ```
+
+## Override Default Options
+
+You can use `overridePropertyOptions` to override the property options of the embedded property.
+
+```ts copy
+@Definition()
+export class Car {
+  @Id()
+  id: ObjectId;
+
+  @Property()
+  name: string;
+
+  @Embedded(() => Brand, {
+    overridePropertyOptions: {
+      create: { nullable: false },
+      output: { nullable: false },
+      db: { required: true },
+    },
+  })
+  brand: Brand;
+}
+```
+
+By default, the embedded property is nullable for `create` and `output` and not required for `db`.
+With the example above, the embedded property will be required for `create` and `output` and `db`.
