@@ -262,6 +262,104 @@ class GeneralHook implements Hook {
   `AllDefinitions` is a special value that you can use to indicate that the hook will be called for all models which can be imported from `'dryerjs'`.
 </Callout>
 
+## Hook for specific context
+
+You can create a hook that will be called for specific context. This will help reducing branching logic in your hook.
+Below is an example of a hook that apply to all contexts which has many branching logic.
+
+```ts copy
+type Context = { role: 'admin' | 'user' | 'guest' };
+
+@Hook(() => Post)
+class PostHook<Post, Context> {
+  async beforeReadFilter({ ctx, filter }: BeforeReadFilterHookInput<Post, Context>) {
+    if (ctx.role === 'admin') {
+      return;
+    }
+
+    if (ctx.role === 'user') {
+      filter.userId = ctx.userId;
+      return;
+    }
+
+    if (ctx.role === 'guest') {
+      filter.isPublic = true;
+      return;
+    }
+  }
+
+  async beforeWriteFilter({ ctx, filter }: beforeWriteFilterHookInput<Post, Context>) {
+    if (ctx.role === 'admin') {
+      return;
+    }
+
+    if (ctx.role === 'user') {
+      filter.userId = ctx.userId;
+      return;
+    }
+
+    if (ctx.role === 'guest') {
+      throw new Error('You cannot remove post as guest');
+    }
+  }
+}
+```
+
+Instead of writing the same branching logic in every hook,
+you can create a hook that will be called for specific context by using `shouldApplyForContext`
+
+```ts copy
+@Hook(() => Post)
+class AdminPostHook<Post, Context> {
+  shouldApplyForContext(ctx: Context) {
+    return ctx.role === 'admin';
+  }
+
+  async beforeReadFilter({ ctx, filter }: BeforeReadFilterHookInput<Post, Context>) {
+    return;
+  }
+
+  async beforeWriteFilter({ ctx, filter }: beforeWriteFilterHookInput<Post, Context>) {
+    return;
+  }
+}
+
+@Hook(() => Post)
+class UserPostHook<Post, Context> {
+  shouldApplyForContext(ctx: Context) {
+    return ctx.role === 'user';
+  }
+
+  async beforeReadFilter({ ctx, filter }: BeforeReadFilterHookInput<Post, Context>) {
+    filter.userId = ctx.userId;
+    return;
+  }
+
+  async beforeWriteFilter({ ctx, filter }: BeforeWriteFilterHookInput<Post, Context>) {
+    filter.userId = ctx.userId;
+    return;
+  }
+}
+
+@Hook(() => Post)
+class GuestPostHook<Post, Context> {
+  shouldApplyForContext(ctx: Context) {
+    return ctx.role === 'guest';
+  }
+
+  async beforeReadFilter({ ctx, filter }: BeforeReadFilterHookInput<Post, Context>) {
+    filter.isPublic = true;
+    return;
+  }
+
+  async beforeWriteFilter({ ctx, filter }: BeforeWriteFilterHookInput<Post, Context>) {
+    throw new Error('You cannot remove post as guest');
+  }
+}
+```
+
+As you can see, the code is much cleaner and easier to read.
+
 ## Default hook
 
 DryerJS has a default hook that will be called for all models.
