@@ -4,7 +4,7 @@ import { Callout } from 'nextra-theme-docs';
 
 With DryerJS, you can easily create CRUD APIs for your models.
 
-## Simple model
+## Simple Model
 
 Suppose you have a model called `Tag`:
 ```ts copy
@@ -37,7 +37,7 @@ mutation {
 }
 ```
 
-### Find one
+### Find One
 
 ```graphql copy
 query {
@@ -48,7 +48,7 @@ query {
 }
 ```
 
-If there is no tags with the given id, the API will return error with message: `No Tag found with ID: 000000000000000000000000`
+If there are no tags with the given id, the API will return an error with message: `No Tag found with ID: 000000000000000000000000`
 
 <Callout>
   On Update and Remove APIs, find one will be called first to check if the document exists.
@@ -103,7 +103,7 @@ query {
 
 There will be `filter` and `sort` arguments which will be covered in the [Filter and Sort](/Guides/filter-and-sort) section.
 
-### Find all
+### Find All
 
 ```graphql copy
 query {
@@ -122,7 +122,7 @@ There will be `filter` and `sort` arguments which will be covered in the [Filter
 
 ### Bulk APIs
 
-Bulk APIs is covered in the [Bulk APIs](/Guides/bulk-apis) section.
+Bulk APIs are covered in the [Bulk APIs](/Guides/bulk-apis) section.
 
 ### Whitelist APIs
 

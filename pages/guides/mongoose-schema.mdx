@@ -27,9 +27,9 @@ You can also use `onSchema` option on `@DryerModule.register`.
 
 ## Index decorator
 
-
-
 ```ts copy
+import { Index, Definition } from 'dryerjs';
+
 @Index({ name: 1 }, { unique: true })
 @Definition()
 class Tag {}
