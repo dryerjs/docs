@@ -73,8 +73,8 @@ query {
   ) {
     docs {
       email
-        numberOfOrders
-      }
+      numberOfOrders
+    }
     totalDocs
   }
 }
@@ -84,7 +84,7 @@ More sample calls could be found [here](https://github.com/dryerjs/dryerjs/blob/
 
 ## Text Search
 
-You can enable text search by adding. Be aware that you have to create text index first.
+You can enable text search by adding. Be aware that you have to create a text index first.
 
 ```ts copy
 @Index({ name: 'text' })

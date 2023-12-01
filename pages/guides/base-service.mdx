@@ -2,12 +2,13 @@ import { Callout } from 'nextra-theme-docs';
 
 # Base Service
 
-You can inject `BaseService` into `Hooks`, other `Services`, or `Resolvers`. `BaseService` can be think of as a wrapper of `mongoose` `Model`,
-it provides basic CRUD operations with `context` and `Hooks`.
+You can inject `BaseService` into `Hooks`, other `Services`, or `Resolvers`.
+`BaseService` can be thought of as a wrapper of `mongoose` `Model`.
+It provides basic CRUD operations with `context` and `Hooks`.
 
 ## Interface
 
-Below is the type of `BaseService`, from that you can see the methods and their parameters.
+Below is the type of `BaseService`, which shows the methods and their parameters.
 
 ```ts copy
 class BaseService<T = any, Context = any> {
@@ -39,6 +40,7 @@ class AuthService {
 
   async refreshToken(ctx: Context) {
     const user = await this.userService.findOne(ctx, { _id: ctx.user.id });
+    // fake function to generate token
     return getTokenFromUser(user);
   }
 }
@@ -50,7 +52,7 @@ class AuthService {
 you can use `mongoose` `Model` directly.
 
 ```ts copy
-import { PaginatedModel } from 'mongoose';
+import { PaginatedModel, InjectModel } from 'mongoose';
 
 @Injectable()
 class AuthService {
@@ -70,7 +72,7 @@ class AuthService {
 @Injectable()
 class AuthService {
   async cron() {
-    const adminContext: Context = { id: '000000000000000000000000', role: 'admin' };
+    const adminContext: Context = { user: { id: '000000000000000000000000', role: 'admin' } };
     const oneYearAgo = new Date(Date.now() - 365 * 86400 * 1000);
     const users = await this.userService.findAll(ctx, { lastLoggedInAt: { $lt: oneYearAgo } });
     for (const user of users) {

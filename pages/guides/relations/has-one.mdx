@@ -38,7 +38,7 @@ export class FeatureImage {
 ```
 
 <Callout>
-  `Ref` is a type function that is imported from `'dryerjs'`, not using `Ref` will result a `ReferenceError`
+  `Ref` is a type function imported from `'dryerjs'`, not using `Ref` will result in a `ReferenceError`
 </Callout>
 
 In the above example, we have defined a `HasMany` relationship between `Store` and `Product`. This means that a `Store` can have many `Products`.
@@ -63,13 +63,14 @@ mutation {
 ```
 
 <Callout>
-  If you want <b>NOT</b> to allow create `featureImage` along with `product`, you can set `allowCreateWithin` to `false` in the options or just omit it.
+  If you want to <b>prevent</b> the creation of a `featureImage` along with a `product`,
+  you can set `allowCreateWithin` to `false` in the options or simply omit it.
 </Callout>
 
 ## Resolve fields
 
 <Callout>
-  To prevent resolving the `featureImage` field, set `noPopulation` to `true`.
+  To <b>prevent the resolution</b> of the `featureImage` field, set `noPopulation` to `true`.
 </Callout>
 
 ```ts copy
@@ -85,4 +86,4 @@ export class Product {
 
 ## Ensure relationship
 
-By default, you cannot remove a `Product` if it has a `FeatureImage`. To allow remove that, you can set `skipRelationCheckOnRemove` to `true` in the options;
+By default, you cannot remove a `Product` if it has a `FeatureImage`. To <b>allow removal in this case</b>, you can set `skipRelationCheckOnRemove` to `true` in the options.
