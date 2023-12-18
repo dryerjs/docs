@@ -41,8 +41,8 @@ export class FeatureImage {
   `Ref` is a type function imported from `'dryerjs'`, not using `Ref` will result in a `ReferenceError`
 </Callout>
 
-In the above example, we have defined a `HasMany` relationship between `Store` and `Product`. This means that a `Store` can have many `Products`.
-Because of that we have to define a `storeId` property on the `Product` class. This is the foreign key that will be used to identify which `Store` a `Product` belongs to.
+In the above example, we have defined a `HasOne` relationship between `Product` and `FeatureImage`. This means that a `Product` can have one `FeatureImage`.
+Because of that we have to define a `storeId` property on the `FeatureImage` class. This is the foreign key that will be used to identify which `Product` a `FeatureImage` belongs to.
 
 ## Create API
 
