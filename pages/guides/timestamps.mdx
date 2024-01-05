@@ -67,26 +67,3 @@ export class User {
   updatedAt: Date;
 }
 ```
-
-## Using Base class
-
-You can have a base class with the `@Definition` decorator and extend it later to reduce duplication.
-
-```ts copy
-class Base {
-  @Id()
-  id: ObjectId;
-
-  @AutoTimestamp()
-  createdAt: Date;
-
-  @AutoTimestamp()
-  updatedAt: Date;
-}
-
-@Definition({ timestamps: true })
-export class User extends Base {
-  @Property()
-  name: string;
-}
-```

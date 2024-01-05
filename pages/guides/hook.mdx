@@ -19,10 +19,10 @@ export class Tag {
 
 @Hook(() => Tag)
 class TagHook implements Hook<Tag> {
-  constructor(@InjectModel('Tag') private readonly Tag: PaginatedModel<Tag>) {}
+  constructor(@InjectBaseService(Tag) public tagService: BaseService<Tag, Context>) {}
 
   async beforeCreate({ input }: BeforeCreateHookInput) {
-    const existingTag = await this.Tag.findOne({ name: input.name });
+    const existingTag = await this.tagService.model.findOne({ name: input.name });
     if (existingTag) {
       throw new Error(`Tag with name ${input.name} already exists`);
     }

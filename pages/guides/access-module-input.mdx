@@ -1,0 +1,29 @@
+# Access Module Input
+
+## Usage
+
+```ts copy
+@Resolver()
+export class SeederResolver implements OnModuleInit {
+  constructor(
+    private readonly moduleRef: ModuleRef,
+    @Inject(DRYER_MODULE_OPTIONS)
+    private readonly dryerModuleOptions: DryerModuleOptions,
+  ) {}
+
+  public cleanDatabase() {
+    return Promise.all(
+      this.dryerModuleOptions.definitions.map(async (definition) => {
+        const model = this.moduleRef.get(getModelToken(definition.name), {
+          strict: false,
+        });
+        await model.deleteMany({});
+        await model.ensureIndexes({});
+      }),
+    );
+  }
+}
+```
+
+Above example show how to loop through all the definitions to clean the database.
+`By using @Inject(DRYER_MODULE_OPTIONS)` we can get the options that we have passed to the module.

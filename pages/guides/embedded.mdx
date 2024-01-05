@@ -222,6 +222,19 @@ export class Car {
 }
 ```
 
+You can disable _id for the embedded object by passing `schemaOptions: { _id: false }` to the `@Definition` decorator.
+
+```ts copy
+@Definition({ schemaOptions: { _id: false } })
+export class Money {
+  @Property({ type: () => graphql.GraphQLInt })
+  amount: number;
+
+  @Property()
+  currency: string;
+}
+```
+
 ## Multi-level Embedded
 
 You can embed documents inside other embedded documents but the embedded APIs will only be generated for the first level.

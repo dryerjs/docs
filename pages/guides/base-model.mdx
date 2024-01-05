@@ -1,0 +1,40 @@
+# Base Model
+
+You can create a base model and extend it in your models. This is useful for adding common fields to all your models.
+
+## Usage
+
+```ts copy
+export const BaseModel = () => {
+  class BaseModelAsClass {
+    _id: ObjectId;
+
+    @Id()
+    id: ObjectId;
+
+    @Property({
+      output: { type: () => GraphQLISODateTime },
+      create: Skip,
+      update: Skip,
+    })
+    createdAt: Date;
+
+    @Property({
+      output: { type: () => GraphQLISODateTime },
+      create: Skip,
+      update: Skip,
+    })
+    updatedAt: Date;
+  }
+  return BaseModelAsClass;
+};
+
+@Definition({ timestamps: true })
+export class User extends BaseModel() {
+  @Property()
+  name: string;
+}
+```
+
+In the above example, BaseModel defines the common fields that all models should have.
+The User model extends the BaseModel and adds the name field.

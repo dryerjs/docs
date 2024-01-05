@@ -12,8 +12,13 @@ Below is the type of `BaseService`, which shows the methods and their parameters
 
 ```ts copy
 class BaseService<T = any, Context = any> {
+    model: PaginateModel<T>;
     create(ctx: Context, input: Partial<T>): Promise<T>;
     update(ctx: Context, input: Partial<T> & { id: ObjectId }): Promise<T>;
+    findById(ctx: Context, filter: { _id: ObjectId }): Promise<T>;
+    findByIdNullable(ctx: Context, filter: { _id: ObjectId }): Promise<T | null>;
+    findOne(ctx: Context, filter: FilterQuery<T>): Promise<T>;
+    findOneNullable(ctx: Context, filter: FilterQuery<T>): Promise<T | null>;
     findOne(ctx: Context, filter: mongoose.FilterQuery<T>): Promise<T>;
     findAll(ctx: Context, filter: mongoose.FilterQuery<T>, sort: object): Promise<T[]>;
     remove(ctx: Context, id: ObjectId, options?: RemoveOptions): Promise<SuccessResponse>;
@@ -49,17 +54,15 @@ class AuthService {
 ## Use Mongoose Model
 
 `BaseService` only covers the basic CRUD operations with context, if you want to use more advanced features or context free,
-you can use `mongoose` `Model` directly.
+you can use `mongoose` `Model` directly by accessing `model` property of `BaseService`.
 
 ```ts copy
-import { PaginatedModel, InjectModel } from 'mongoose';
-
 @Injectable()
 class AuthService {
-  constructor(@InjectModel(User) public User: PaginateModel<User>) {}
+  constructor(@InjectBaseService(User) public userService: BaseService<User, Context>) {}
 
   async isEmailTaken(email: string) {
-    return await this.User.exists({ email });
+    return await this.userService.model.exists({ email });
   }
 }
 ```
