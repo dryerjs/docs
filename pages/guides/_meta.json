@@ -23,6 +23,12 @@
       "breadcrumb": false
     }
   },
+  "base-model": {
+    "title": "Base Model",
+    "theme": {
+      "breadcrumb": false
+    }
+  },
   "transform-and-validate": {
     "title": "Transform & Validate",
     "theme": {
