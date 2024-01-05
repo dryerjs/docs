@@ -79,5 +79,10 @@
     "theme": {
       "breadcrumb": false
     }
+  },
+  "access-module-input": {
+    "theme": {
+      "breadcrumb": false
+    }
   }
 }

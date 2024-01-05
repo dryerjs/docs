@@ -51,7 +51,6 @@ import {
   InputType,
 } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
-import { InjectModel, MongooseModule } from '@nestjs/mongoose';
 import {
   BelongsTo,
   CreateInputType,
@@ -70,7 +69,6 @@ import {
   BeforeWriteFilterHookInput,
   BeforeReadFilterHookInput,
 } from 'dryerjs';
-import { PaginateModel } from 'mongoose';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
 
@@ -253,7 +251,6 @@ class SignInInput extends PickType(CreateInputType(User), [
 export class AuthResolver {
   constructor(
     @InjectBaseService(User) public userService: BaseService<User, Context>,
-    @InjectModel('User') public User: PaginateModel<User>,
     private readonly jwtService: JwtService,
   ) {}
 
@@ -264,7 +261,7 @@ export class AuthResolver {
     })
     input: Pick<User, 'email' | 'password'>,
   ) {
-    const user = await this.User.findOne({ email: input.email });
+    const user = await this.userService.model.findOne({ email: input.email });
     if (user?.password !== input.password) {
       throw new UnauthorizedException('Invalid email or password');
     }
@@ -292,12 +289,12 @@ export class AuthResolver {
 @Injectable()
 export class SeederService implements OnModuleInit {
   constructor(
-    @InjectModel('User') readonly User: PaginateModel<User>,
-    @InjectModel('Post') readonly Post: PaginateModel<User>,
+    @InjectBaseService(User) public userService: BaseService<User, Context>,
+    @InjectBaseService(Post) public postService: BaseService<Post, Context>,
   ) {}
 
   async onModuleInit() {
-    if ((await this.User.countDocuments({})) !== 0) return;
+    if ((await this.userService.model.countDocuments({})) !== 0) return;
     if (process.env.NODE_ENV !== 'test') {
       Logger.log('Run seeding...', SeederService.name);
     }
@@ -366,8 +363,8 @@ export class SeederService implements OnModuleInit {
         userId: secondNormalUserId,
       },
     ];
-    await this.User.create(users);
-    await this.Post.create(posts);
+    await this.userService.model.create(users);
+    await this.postService.model.create(posts);
   }
 }
 
