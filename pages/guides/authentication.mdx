@@ -43,10 +43,10 @@ class Announcement {
   imports: [
     // will be other imports as well
     DryerModule.register({
-      definitions: [Author],
+      definitions: [Announcement],
       resolverConfigs: [
         {
-          definition: Author,
+          definition: Announcement,
           decorators: {
             write: [UseGuards(AdminOnly)],
             read: [UseGuards(UserOnly)],
