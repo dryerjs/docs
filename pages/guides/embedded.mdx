@@ -37,7 +37,13 @@ You should not include embedded definitions in the `definitions` array of the `D
   imports: [
     // will be other imports as well
     DryerModule.register({
-      definitions: [Author],
+      definitions: [Author],,
+      embeddedResolverConfigs: [
+        {
+          definition: Author,
+          allowedApis: ['create', 'update', 'remove', 'findOne', 'findAll'],
+        },
+      ],
     }),
   ],
 })
@@ -183,20 +189,6 @@ query {
   }
 }
 ```
-
-## Whitelist APIs
-
-You can also whitelist the APIs you want to allow for the embedded document. By default, all APIs are allowed.
-
-```ts copy
-export class Author {
-  @Embedded(() => Book, {
-    allowedApis: ['create', 'update', 'remove', 'findOne', 'findAll'],
-  })
-  books: Book[];
-}
-```
-
 
 ## Object embedded
 
