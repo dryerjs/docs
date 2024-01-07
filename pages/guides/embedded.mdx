@@ -289,16 +289,34 @@ export class MustBeUser implements CanActivate {
 
 @Definition()
 export class Author {
-  @Embedded(() => Book, { resolverDecorators: { remove: UseGuards(MustBeUser) } })
+  @Embedded(() => Book)
   books: Book[];
 }
+
+@Module({
+  imports: [
+    // will be other imports as well
+    DryerModule.register({
+      definitions: [Author],
+      embeddedResolverConfigs: [
+        {
+          definition: Author,
+          allowedApis: ['create', 'update', 'remove', 'findOne', 'findAll'],
+          decorators: { remove: UseGuards(MustBeUser) },
+          property: 'books',
+        },
+      ],
+    }),
+  ],
+})
+export class AppModule {}
 ```
 
 The example above will add the `@UseGuards(MustBeUser)` decorator to the `removeAuthorBooks` resolver.
-You can add decorators for other APIs as well. The `resolverDecorators` object has the following structure:
+You can add decorators for other APIs as well. The `decorators` object has the following structure:
 
 ```ts copy
-resolverDecorators?: {
+decorators?: {
   default?: MethodDecorator | MethodDecorator[];
   write?: MethodDecorator | MethodDecorator[];
   read?: MethodDecorator | MethodDecorator[];

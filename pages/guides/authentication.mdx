@@ -2,7 +2,7 @@ import { Callout } from 'nextra-theme-docs';
 
 # Authentication
 
-You can authorize your generated APIs by defining `resolverDecorators` in your `@Definition`.
+You can authorize your generated APIs by defining `decorators` in your `DryerModule.register`.
 Below is an example of using `NestJS` `Guard` to authorize your APIs.
 
 ```ts copy
@@ -30,12 +30,7 @@ export class UserOnly implements CanActivate {
   }
 }
 
-@Definition({
-  resolverDecorators: {
-    write: [UseGuards(AdminOnly)],
-    read: [UseGuards(UserOnly)],
-  },
-})
+@Definition()
 class Announcement {
   @Id()
   id: ObjectId;
@@ -43,6 +38,25 @@ class Announcement {
   @Property()
   name: string;
 }
+
+@Module({
+  imports: [
+    // will be other imports as well
+    DryerModule.register({
+      definitions: [Author],
+      resolverConfigs: [
+        {
+          definition: Author,
+          decorators: {
+            write: [UseGuards(AdminOnly)],
+            read: [UseGuards(UserOnly)],
+          },
+        },
+      ],
+    }),
+  ],
+})
+export class AppModule {}
 ```
 
 The example above will:
@@ -53,10 +67,10 @@ The example above will:
 
 You can use `default`, `write`, `read` to reduce the amount of decorators you need to write.
 More specific decorators will override less specific decorators.
-Below is the definition of `resolverDecorators`:
+Below is the definition of `decorators`:
 
 ```ts copy
-  resolverDecorators?: {
+  decorators?: {
     default?: MethodDecorator | MethodDecorator[];
     write?: MethodDecorator | MethodDecorator[];
     read?: MethodDecorator | MethodDecorator[];
@@ -86,17 +100,31 @@ There is an more real-world example on [JWT recipe](/recipes/JWT).
 
 ## Other decorators
 
-`resolverDecorators` is not for authentication only. You can use it to add other decorators to your generated resolvers.
+`decorators` is not for authentication only. You can use it to add other decorators to your generated resolvers.
 
 ```ts copy
 import { UseInterceptors } from '@nestjs/common';
 
-@Definition({
-  resolverDecorators: {
-    default: [UseInterceptors(LoggingInterceptor)],
-  }
-})
+@Definition()
 class Announcement {}
+
+@Module({
+  imports: [
+    // will be other imports as well
+    DryerModule.register({
+      definitions: [Announcement],
+      resolverConfigs: [
+        {
+          definition: Announcement,
+          decorators: {
+            default: [UseInterceptors(LoggingInterceptor)],
+          },
+        },
+      ],
+    }),
+  ],
+})
+export class AppModule {}
 ```
 
 > You can find LoggingInterceptor implementation [here](https://docs.nestjs.com/interceptors#aspect-interception)
