@@ -5,7 +5,7 @@ Reuse the `Tag` example on the [CRUD APIs](/guides/crud-apis) section.
 ```ts copy
 import { Id, ObjectId, Property, Definition } from 'dryerjs';
 
-@Definition({ allowedApis: '*' })
+@Definition()
 export class Tag {
   @Id()
   id: ObjectId;
@@ -20,15 +20,20 @@ export class Tag {
 `Bulk APIs` are not enabled by default. To enable them, you need to set the `allowedApis` property to `*` or list the name of APIs you want.
 
 ```ts copy
-@Definition({
-  allowedApis: [
-    'essentials',
-    'bulkCreate',
-    'bulkUpdate',
-    'bulkRemove',
+DryerModule.register({
+  definitions: [Tag],
+  resolverConfigs: [
+    {
+      definition: Tag,
+      allowedApis: [
+        'essentials',
+        'bulkCreate',
+        'bulkUpdate',
+        'bulkRemove',
+      ],
+    },
   ],
-})
-export class Tag {}
+}),
 ```
 
 ## Generated Bulk APIs

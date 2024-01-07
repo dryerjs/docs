@@ -127,13 +127,7 @@ const AdminOnly = () => {
 
 const PublicAccessWithRole = () => applyDecorators(UseGuards(RoleGuard));
 
-@Definition({
-  allowedApis: ['findOne', 'paginate', 'remove', 'update'],
-  resolverDecorators: {
-    update: [UserOnly()],
-    remove: [AdminOnly()],
-  },
-})
+@Definition()
 export class User {
   @Id()
   id: ObjectId;
@@ -151,12 +145,7 @@ export class User {
   password: string;
 }
 
-@Definition({
-  resolverDecorators: {
-    write: [UserOnly()],
-    read: [PublicAccessWithRole()],
-  },
-})
+@Definition()
 export class Post {
   @Id()
   id: ObjectId;
@@ -383,6 +372,23 @@ export class SeederService implements OnModuleInit {
       definitions: [User, Post],
       contextDecorator: Ctx,
       hooks: [UserHook, PostHook],
+      resolverConfigs: [
+        {
+          definition: User,
+          allowedApis: ['findOne', 'paginate', 'remove', 'update'],
+          decorators: {
+            update: [UserOnly()],
+            remove: [AdminOnly()],
+          },
+        },
+        {
+          definition: Post,
+          decorators: {
+            write: [UserOnly()],
+            read: [PublicAccessWithRole()],
+          },
+        }
+      ],
     }),
     JwtModule.register({
       global: true,
