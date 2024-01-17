@@ -126,12 +126,11 @@ Bulk APIs are covered in the [Bulk APIs](/guides/bulk-apis) section.
 
 ### Whitelist APIs
 
-You can whitelist APIs by adding them into the `allowedApis` array in the `DryerModule.register#resolverConfigs`.
+You can whitelist APIs by adding them into the `allowedApis` array in the `DryerModule.register#definitions`.
 
 ```ts copy
 DryerModule.register({
-  definitions: [Tag],
-  resolverConfigs: [
+  definitions: [
     {
       definition: Tag,
       allowedApis: [

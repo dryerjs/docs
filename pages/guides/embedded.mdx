@@ -37,12 +37,14 @@ You should not include embedded definitions in the `definitions` array of the `D
   imports: [
     // will be other imports as well
     DryerModule.register({
-      definitions: [Author],
-      embeddedResolverConfigs: [
+      definitions: [
         {
           definition: Author,
-          allowedApis: ['create', 'update', 'remove', 'findOne', 'findAll'],
-        },
+          embeddedConfigs: [
+            property: 'books',
+            allowedApis: ['create', 'update', 'remove', 'findOne', 'findAll'],
+          ],
+        }
       ],
     }),
   ],
@@ -297,14 +299,17 @@ export class Author {
   imports: [
     // will be other imports as well
     DryerModule.register({
-      definitions: [Author],
-      embeddedResolverConfigs: [
+      definitions: [
         {
           definition: Author,
-          allowedApis: ['create', 'update', 'remove', 'findOne', 'findAll'],
-          decorators: { remove: UseGuards(MustBeUser) },
-          property: 'books',
-        },
+          embeddedConfigs: [
+            {
+              allowedApis: ['create', 'update', 'remove', 'findOne', 'findAll'],
+              decorators: { remove: UseGuards(MustBeUser) },
+              property: 'books',
+            },
+          ],
+        }
       ],
     }),
   ],
