@@ -6,8 +6,6 @@ Hooks are the place that you can add your own code to the default behavior or Dr
 Below is a example of a hook that will be called before a new Tag is created. If the tag already exists, it will throw an error.
 
 ```ts copy
-import { PaginatedModel } from 'mongoose';
-
 @Definition()
 export class Tag {
   @Id()
@@ -17,11 +15,12 @@ export class Tag {
   name: string;
 }
 
-@Hook(() => Tag)
-class TagHook implements Hook<Tag> {
+@Injectable()
+class TagHook {
   constructor(@InjectBaseService(Tag) public tagService: BaseService<Tag, Context>) {}
 
-  async beforeCreate({ input }: BeforeCreateHookInput) {
+  @BeforeCreateHook(() => Tag)
+  async throwErrorIfNameAlreadyExists({ input }: BeforeCreateHookInput<Tag, Context>) {
     const existingTag = await this.tagService.model.findOne({ name: input.name });
     if (existingTag) {
       throw new Error(`Tag with name ${input.name} already exists`);
@@ -38,104 +37,119 @@ class TagHook implements Hook<Tag> {
 export class AppModule {}
 ```
 
-## Interface
+## List of hooks
 
-Below is the hook interface. You can implement any of the methods you want.
+Below is the list of hooks that you can use.
+
+```
+BeforeCreateHook
+AfterCreateHook
+BeforeUpdateHook
+AfterUpdateHook
+BeforeRemoveHook
+AfterRemoveHook
+BeforeFindOneHook
+AfterFindOneHook
+BeforeFindManyHook
+AfterFindManyHook
+BeforeReadFilterHook
+BeforeWriteFilterHook
+```
+
+Below is the types of hooks input.
 
 ```ts copy
-export interface Hook<T = any, Context = any> {
-  beforeCreate?(input: { ctx: Context; input: Partial<T>; definition: Definition }): Promise<void>;
+type AfterRemoveHookInput<T = any, Context = any> = {
+  ctx: Context;
+  removed: T;
+  definition: Definition;
+  options: RemoveOptions;
+};
 
-  afterCreate?(input: { ctx: Context; input: Partial<T>; created: T; definition: Definition }): Promise<void>;
+type BeforeRemoveHookInput<T = any, Context = any> = {
+  ctx: Context;
+  beforeRemoved: T;
+  definition: Definition;
+  options: RemoveOptions;
+};
 
-  beforeUpdate?(input: {
-    ctx: Context;
-    input: Partial<T>;
-    beforeUpdated: T;
-    definition: Definition;
-  }): Promise<void>;
+type AfterFindOneHookInput<T = any, Context = any> = {
+  ctx: Context;
+  filter: FilterQuery<T>;
+  result: T;
+  definition: Definition;
+};
 
-  afterUpdate?(input: {
-    ctx: Context;
-    input: Partial<T>;
-    updated: T;
-    beforeUpdated: T;
-    definition: Definition;
-  }): Promise<void>;
+type BeforeFindOneHookInput<T = any, Context = any> = {
+  ctx: Context;
+  filter: FilterQuery<T>;
+  definition: Definition;
+};
 
-  beforeFindOne?(input: { ctx: Context; filter: FilterQuery<T>; definition: Definition }): Promise<void>;
+type AfterUpdateHookInput<T = any, Context = any> = {
+  ctx: Context;
+  input: Partial<T>;
+  updated: T;
+  beforeUpdated: T;
+  definition: Definition;
+};
 
-  afterFindOne?(input: {
-    ctx: Context;
-    filter: FilterQuery<T>;
-    result: T;
-    definition: Definition;
-  }): Promise<void>;
+type BeforeUpdateHookInput<T = any, Context = any> = {
+  ctx: Context;
+  input: Partial<T>;
+  beforeUpdated: T;
+  definition: Definition;
+};
 
-  beforeRemove?(input: {
-    ctx: Context;
-    beforeRemoved: T;
-    definition: Definition;
-    options: RemoveOptions;
-  }): Promise<void>;
+type AfterCreateHookInput<T = any, Context = any> = {
+  ctx: Context;
+  input: Partial<T>;
+  created: T;
+  definition: Definition;
+};
 
-  afterRemove?(input: {
-    ctx: Context;
-    removed: T;
-    definition: Definition;
-    options: RemoveOptions;
-  }): Promise<void>;
+type BeforeCreateHookInput<T = any, Context = any> = {
+  ctx: Context;
+  input: Partial<T>;
+  definition: Definition;
+};
 
-  beforeFindMany?(input: {
-    ctx: Context;
-    filter: FilterQuery<T>;
-    sort: object;
-    limit?: number;
-    page?: number;
-    definition: Definition;
-  }): Promise<void>;
+type BeforeFindManyHookInput<T = any, Context = any> = {
+  ctx: Context;
+  filter: FilterQuery<T>;
+  sort: object;
+  limit?: number;
+  page?: number;
+  definition: Definition;
+};
 
-  afterFindMany?(input: {
-    ctx: Context;
-    filter: FilterQuery<T>;
-    sort: object;
-    items: T[];
-    limit?: number;
-    page?: number;
-    definition: Definition;
-  }): Promise<void>;
+type AfterFindManyHookInput<T = any, Context = any> = {
+  ctx: Context;
+  filter: FilterQuery<T>;
+  sort: object;
+  items: T[];
+  limit?: number;
+  page?: number;
+  definition: Definition;
+};
 
-  beforeWriteFilter?(input: {
-    ctx: Context;
-    filter: FilterQuery<T>;
-  }): Promise<void>;
+type BeforeReadFilterHookInput<T = any, Context = any> = {
+  ctx: Context;
+  filter: FilterQuery<T>;
+  definition: Definition;
+};
 
-  beforeReadFilter?(input: {
-    ctx: Context;
-    filter: FilterQuery<T>;
-  }): Promise<void>;
-}
+type BeforeWriteFilterHookInput<T = any, Context = any> = {
+  ctx: Context;
+  filter: FilterQuery<T>;
+  definition: Definition;
+};
 ```
 
 <Callout>
   API `update` and `remove` use `findOne` under the hood so you might feel like `beforeFindOne` and `afterFindOne` are applied for `update` and `remove` too.
   If your `context` cannot `findOne` a document, you will not be able to `update` and `remove` it.
 </Callout>
-
-There are exported types for hooks input. You can import them from `'dryerjs'`. Each type has two parameters of `T` and `Context`.
-
-```ts copy
-AfterRemoveHookInput
-BeforeRemoveHookInput
-AfterFindOneHookInput
-BeforeFindOneHookInput
-AfterUpdateHookInput
-BeforeUpdateHookInput
-AfterCreateHookInput
-BeforeCreateHookInput
-BeforeFindManyHookInput
-AfterFindManyHookInput
-```
 
 ## Special hooks
 
@@ -245,14 +259,48 @@ This is helpful when you do not want to duplicate your code in `beforeFindOne` &
 * Modify filter based on context on `update` and `remove`
 (e.g. add `userId` from context to filter so that the user can only update or remove their own data)
 
+## Priority
+
+If multiple hooks are defined for the same method, they will be sorted by priority.
+If you do not specify the priority, it will be set to `100`.
+
+```ts copy
+@Injectable()
+export class ProductHook {
+  @BeforeCreateHook(() => Product, { priority: 1 })
+  async assignUserIdIfNotMentioned({
+    input,
+    ctx,
+  }: BeforeCreateHookInput<Product, Context>) {
+    // assign userId if not provided
+    if (_.isNil(input.userId)) {
+      input.userId = ctx.user.id;
+    }
+  }
+
+  @BeforeCreateHook(() => Product, { priority: 2 })
+  async ensureNormalUserNotCreateProductForOtherUsers({
+    input,
+    ctx,
+  }: BeforeCreateHookInput<Product, Context>) {
+    if (ctx.user.role === UserRole.ADMIN) return;
+    // only admin can create product for other user
+    if (ctx.user.id.toString() === input.userId.toString()) return;
+    throw new UnauthorizedException('USER_ID_NOT_MATCH');
+  }
+}
+```
+
+On the above example, `assignUserIdIfNotMentioned` will be called before `ensureNormalUserNotCreateProductForOtherUsers`.
+
 ## General Hook
 
 You can also create a general hook that will be called for all models.
 
 ```ts copy
-@Hook(() => AllDefinitions)
 class GeneralHook implements Hook {
-  async beforeCreate({ input }: BeforeCreateHookInput) {
+  @BeforeCreateHook(() => AllDefinitions)
+  async logOnCreate({ input }: BeforeCreateHookInput) {
     console.log(`Before create ${definition.name}`);
   }
 }
@@ -261,104 +309,6 @@ class GeneralHook implements Hook {
 <Callout>
   `AllDefinitions` is a special value that you can use to indicate that the hook will be called for all models which can be imported from `'dryerjs'`.
 </Callout>
-
-## Hook for specific context
-
-You can create a hook that will be called for specific context. This will help reducing branching logic in your hook.
-Below is an example of a hook that apply to all contexts which has many branching logic.
-
-```ts copy
-type Context = { role: 'admin' | 'user' | 'guest' };
-
-@Hook(() => Post)
-class PostHook<Post, Context> {
-  async beforeReadFilter({ ctx, filter }: BeforeReadFilterHookInput<Post, Context>) {
-    if (ctx.role === 'admin') {
-      return;
-    }
-
-    if (ctx.role === 'user') {
-      filter.userId = ctx.userId;
-      return;
-    }
-
-    if (ctx.role === 'guest') {
-      filter.isPublic = true;
-      return;
-    }
-  }
-
-  async beforeWriteFilter({ ctx, filter }: beforeWriteFilterHookInput<Post, Context>) {
-    if (ctx.role === 'admin') {
-      return;
-    }
-
-    if (ctx.role === 'user') {
-      filter.userId = ctx.userId;
-      return;
-    }
-
-    if (ctx.role === 'guest') {
-      throw new Error('You cannot remove post as guest');
-    }
-  }
-}
-```
-
-Instead of writing the same branching logic in every hook,
-you can create a hook that will be called for specific context by using `shouldApplyForContext`
-
-```ts copy
-@Hook(() => Post)
-class AdminPostHook<Post, Context> {
-  shouldApplyForContext(ctx: Context) {
-    return ctx.role === 'admin';
-  }
-
-  async beforeReadFilter({ ctx, filter }: BeforeReadFilterHookInput<Post, Context>) {
-    return;
-  }
-
-  async beforeWriteFilter({ ctx, filter }: beforeWriteFilterHookInput<Post, Context>) {
-    return;
-  }
-}
-
-@Hook(() => Post)
-class UserPostHook<Post, Context> {
-  shouldApplyForContext(ctx: Context) {
-    return ctx.role === 'user';
-  }
-
-  async beforeReadFilter({ ctx, filter }: BeforeReadFilterHookInput<Post, Context>) {
-    filter.userId = ctx.userId;
-    return;
-  }
-
-  async beforeWriteFilter({ ctx, filter }: BeforeWriteFilterHookInput<Post, Context>) {
-    filter.userId = ctx.userId;
-    return;
-  }
-}
-
-@Hook(() => Post)
-class GuestPostHook<Post, Context> {
-  shouldApplyForContext(ctx: Context) {
-    return ctx.role === 'guest';
-  }
-
-  async beforeReadFilter({ ctx, filter }: BeforeReadFilterHookInput<Post, Context>) {
-    filter.isPublic = true;
-    return;
-  }
-
-  async beforeWriteFilter({ ctx, filter }: BeforeWriteFilterHookInput<Post, Context>) {
-    throw new Error('You cannot remove post as guest');
-  }
-}
-```
-
-As you can see, the code is much cleaner and easier to read.
 
 ## Default hook
 
