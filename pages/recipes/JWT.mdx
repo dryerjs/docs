@@ -237,7 +237,7 @@ class AccessTokenResponse {
 class SignInInput extends PickType(CreateInputType(User), [
   'email',
   'password',
-] as any) {
+]) {
   @Field({ nullable: true })
   remember: boolean;
 }
