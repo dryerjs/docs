@@ -51,6 +51,7 @@ import {
   InputType,
 } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
+import { MongooseModule } from '@nestjs/mongoose';
 import {
   BelongsTo,
   CreateInputType,
@@ -236,7 +237,7 @@ class AccessTokenResponse {
 class SignInInput extends PickType(CreateInputType(User), [
   'email',
   'password',
-]) {
+] as any) {
   @Field({ nullable: true })
   remember: boolean;
 }
@@ -391,7 +392,7 @@ export class SeederService implements OnModuleInit {
             write: [UserOnly()],
             read: [PublicAccessWithRole()],
           },
-        }
+        },
       ],
     }),
     JwtModule.register({
