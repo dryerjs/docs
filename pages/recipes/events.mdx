@@ -26,24 +26,23 @@ import {
 
 type Context = {};
 
-@Hook(() => AllDefinitions)
-class EventEmitterHook implements Hook<any, Context> {
+@Injectable()
+export class EventEmitterHook {
   constructor(private readonly eventEmitter: EventEmitter2) {}
 
-  async afterCreate(input: AfterCreateHookInput<any, Context>) {
-    const name = `${input.definition.name}.created`;
-    console.log({ name, input });
-    this.eventEmitter.emit(name, input);
+  @AfterCreateHook(() => AllDefinitions)
+  async fireAfterCreateEvents(input: AfterCreateHookInput<any, Context>) {
+    this.eventEmitter.emit(`${input.definition.name}.created`, input);
   }
 
-  async afterUpdate(input: AfterUpdateHookInput<any, Context>) {
-    const name = `${input.definition.name}.updated`;
-    this.eventEmitter.emit(name, input);
+  @AfterUpdateHook(() => AllDefinitions)
+  async fireAfterUpdateEvents(input: AfterUpdateHookInput<any, Context>) {
+    this.eventEmitter.emit(`${input.definition.name}.updated`, input);
   }
 
-  async afterRemove(input: AfterRemoveHookInput<any, Context>) {
-    const name = `${input.definition.name}.removed`;
-    this.eventEmitter.emit(name, input);
+  @AfterRemoveHook(() => AllDefinitions)
+  async fireAfterRemoveEvents(input: AfterRemoveHookInput<any, Context>) {
+    this.eventEmitter.emit(`${input.definition.name}.removed`, input);
   }
 }
 
@@ -63,7 +62,7 @@ class EmailService {
     EventEmitterModule.forRoot(),
     DryerModule.register({
       definitions: [User],
-      hooks: [EventEmitterHook],
+      providers: [EventEmitterHook],
     }),
   ],
   providers: [EmailService],

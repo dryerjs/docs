@@ -2,7 +2,7 @@ import { Callout } from 'nextra-theme-docs';
 
 # Base Service
 
-You can inject `BaseService` into `Hooks`, other `Services`, or `Resolvers`.
+You can inject `BaseService` into `Services` or `Resolvers`.
 `BaseService` can be thought of as a wrapper of `mongoose` `Model`.
 It provides basic CRUD operations with `context` and `Hooks`.
 
@@ -85,5 +85,5 @@ class AuthService {
 }
 ```
 
-Compare with using `mongoose` `Model` directly, calling `update` method with `BaseService` will trigger `beforeUpdate` and `afterUpdate` hooks.
+Compare with using `mongoose` `Model` directly, calling `update` method with `BaseService` will trigger `beforeUpdateHook` and `afterUpdateHook`.
 Which could be extremely important if you have some logic in the hooks.

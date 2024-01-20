@@ -51,6 +51,7 @@ import {
   InputType,
 } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
+import { MongooseModule } from '@nestjs/mongoose';
 import {
   BelongsTo,
   CreateInputType,
@@ -64,7 +65,9 @@ import {
   Skip,
   BaseService,
   InjectBaseService,
-  Hook,
+  BeforeUpdateHook,
+  BeforeReadFilterHook,
+  BeforeWriteFilterHook,
   BeforeUpdateHookInput,
   BeforeWriteFilterHookInput,
   BeforeReadFilterHookInput,
@@ -165,8 +168,9 @@ export class Post {
 
 type Context = null | Pick<User, 'email' | 'id' | 'name' | 'role'>;
 
-@Hook(() => User)
-class UserHook implements Hook<User, Context> {
+@Injectable()
+class UserHook {
+  @BeforeUpdateHook(() => User)
   async beforeUpdate({
     ctx,
     input,
@@ -183,9 +187,10 @@ class UserHook implements Hook<User, Context> {
   }
 }
 
-@Hook(() => Post)
-class PostHook implements Hook<Post, Context> {
-  async beforeWriteFilter({
+@Injectable()
+class PostHook {
+  @BeforeWriteFilterHook(() => Post)
+  async ensureNormalUserCanOnlyWriteToHimself({
     ctx,
     filter,
   }: BeforeWriteFilterHookInput<Post, Context>): Promise<void> {
@@ -195,7 +200,8 @@ class PostHook implements Hook<Post, Context> {
     // guest cannot write post so we don't need to handle it
   }
 
-  async beforeReadFilter({
+  @BeforeReadFilterHook(() => Post)
+  async ensureGuestOrNormalUserCannotReadPrivatePostsOfOthers({
     ctx,
     filter,
   }: BeforeReadFilterHookInput<Post, Context>): Promise<void> {
@@ -231,7 +237,7 @@ class AccessTokenResponse {
 class SignInInput extends PickType(CreateInputType(User), [
   'email',
   'password',
-]) {
+] as any) {
   @Field({ nullable: true })
   remember: boolean;
 }
@@ -369,10 +375,9 @@ export class SeederService implements OnModuleInit {
       process.env.MONGO_URL || 'mongodb://127.0.0.1:27017/dryerjs-example',
     ),
     DryerModule.register({
-      definitions: [User, Post],
       contextDecorator: Ctx,
-      hooks: [UserHook, PostHook],
-      resolverConfigs: [
+      providers: [UserHook, PostHook],
+      definitions: [
         {
           definition: User,
           allowedApis: ['findOne', 'paginate', 'remove', 'update'],
@@ -387,7 +392,7 @@ export class SeederService implements OnModuleInit {
             write: [UserOnly()],
             read: [PublicAccessWithRole()],
           },
-        }
+        },
       ],
     }),
     JwtModule.register({
