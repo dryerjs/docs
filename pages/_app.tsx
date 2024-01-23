@@ -6,14 +6,14 @@ export const runtime = "experimental-edge";
 export default function MyApp({ Component, pageProps }) {
   return (
     <>
-      <Script src="https://www.googletagmanager.com/gtag/js?id=AW-11479572312" />
+      <Script src="https://www.googletagmanager.com/gtag/js?id=G-L709X1Q4RB" />
       <Script id="google-analytics">
         {`
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
         gtag('js', new Date());
-      
-        gtag('config', 'AW-11479572312');
+
+        gtag('config', 'G-L709X1Q4RB');
       `}
       </Script>
       <Component {...pageProps} />
