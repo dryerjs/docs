@@ -14,6 +14,14 @@ export default function MyApp({ Component, pageProps }) {
         gtag('js', new Date());
       
         gtag('config', 'AW-11479572312');
+
+        setTimeout(() => {
+          gtag('event', 'conversion', {
+            'send_to': 'AW-11479572312/a8_gCMbv7YoZENi-8eEq',
+            'value': 1.0,
+            'currency': 'VND'
+          });
+        }, 60000);
       `}
       </Script>
       <Component {...pageProps} />
