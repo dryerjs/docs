@@ -41,8 +41,10 @@ You should not include embedded definitions in the `definitions` array of the `D
         {
           definition: Author,
           embeddedConfigs: [
-            property: 'books',
-            allowedApis: ['create', 'update', 'remove', 'findOne', 'findAll'],
+            {
+              property: 'books',
+              allowedApis: ['create', 'update', 'remove', 'findOne', 'findAll'],
+            }
           ],
         }
       ],
