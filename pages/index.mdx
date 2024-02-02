@@ -1,3 +1,5 @@
+import { Callout } from 'nextra-theme-docs';
+
 # The Declarative GraphQL API Library
 
 DryerJS, leveraging the power of NestJS and Mongoose,
@@ -7,12 +9,16 @@ greatly reducing repetitive coding and enhancing development efficiency.
 
 ## Getting Started
 
+<Callout>
+Want to skip the reading and jump right into the code? Go to the [CodeSandbox section](#using-codesandbox).
+</Callout>
+
 To get started with DryerJS, follow these steps:
 
 1. Prepare:
 
 ```bash copy
-# init new nest project
+# initialize a new Nest project
 npm i -g @nestjs/cli && nest new my-project && cd my-project
 # install standard dependencies
 npm i @nestjs/graphql @nestjs/apollo @nestjs/mongoose
@@ -74,10 +80,90 @@ import { User } from './user';
 export class AppModule {}
 ```
 
-5. Start server
+5. Start the server
 
   ```bash copy
   npm run start:dev
   ```
 
 6. Open browser and go to [http://localhost:3000/graphql](http://localhost:3000/graphql) to see the GraphQL playground.
+
+## Using CodeSandbox
+
+You can start dazzling with DryerJS in a few clicks using CodeSandbox,
+the example is already running with some small customizations to use the in-memory MongoDB.
+Fork the project and start experimenting with the code right away!
+
+[![Edit DryerJS Quickstart](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/p/devbox/dryerjs-quickstart-rysv2s?embed=1&file=%2Fsrc%2Fuser.ts&layout=%257B%2522sidebarPanel%2522%253A%2522EXPLORER%2522%252C%2522rootPanelGroup%2522%253A%257B%2522direction%2522%253A%2522horizontal%2522%252C%2522contentType%2522%253A%2522UNKNOWN%2522%252C%2522type%2522%253A%2522PANEL_GROUP%2522%252C%2522id%2522%253A%2522ROOT_LAYOUT%2522%252C%2522panels%2522%253A%255B%257B%2522type%2522%253A%2522PANEL_GROUP%2522%252C%2522contentType%2522%253A%2522UNKNOWN%2522%252C%2522direction%2522%253A%2522vertical%2522%252C%2522id%2522%253A%2522cls45l4e100e53b6j20jn84hk%2522%252C%2522sizes%2522%253A%255B100%252C0%255D%252C%2522panels%2522%253A%255B%257B%2522type%2522%253A%2522PANEL_GROUP%2522%252C%2522contentType%2522%253A%2522EDITOR%2522%252C%2522direction%2522%253A%2522horizontal%2522%252C%2522id%2522%253A%2522EDITOR%2522%252C%2522panels%2522%253A%255B%257B%2522type%2522%253A%2522PANEL%2522%252C%2522contentType%2522%253A%2522EDITOR%2522%252C%2522id%2522%253A%2522cls45l4e100e23b6jkuqgwr6j%2522%257D%255D%257D%252C%257B%2522type%2522%253A%2522PANEL_GROUP%2522%252C%2522contentType%2522%253A%2522SHELLS%2522%252C%2522direction%2522%253A%2522horizontal%2522%252C%2522id%2522%253A%2522SHELLS%2522%252C%2522panels%2522%253A%255B%257B%2522type%2522%253A%2522PANEL%2522%252C%2522contentType%2522%253A%2522SHELLS%2522%252C%2522id%2522%253A%2522cls45l4e100e43b6j74q1yn5d%2522%257D%255D%252C%2522sizes%2522%253A%255B100%255D%257D%255D%257D%252C%257B%2522type%2522%253A%2522PANEL_GROUP%2522%252C%2522contentType%2522%253A%2522DEVTOOLS%2522%252C%2522direction%2522%253A%2522vertical%2522%252C%2522id%2522%253A%2522DEVTOOLS%2522%252C%2522panels%2522%253A%255B%257B%2522type%2522%253A%2522PANEL%2522%252C%2522contentType%2522%253A%2522DEVTOOLS%2522%252C%2522id%2522%253A%2522cls45l4e100e33b6jef6zgmcq%2522%257D%255D%257D%255D%252C%2522sizes%2522%253A%255B40%252C60%255D%257D%252C%2522tabbedPanels%2522%253A%257B%2522cls45l4e100e23b6jkuqgwr6j%2522%253A%257B%2522tabs%2522%253A%255B%257B%2522id%2522%253A%2522cls42716o00013b6j9grb4p87%2522%252C%2522mode%2522%253A%2522permanent%2522%252C%2522type%2522%253A%2522FILE%2522%252C%2522filepath%2522%253A%2522%252FREADME.md%2522%252C%2522state%2522%253A%2522IDLE%2522%257D%252C%257B%2522type%2522%253A%2522FILE%2522%252C%2522filepath%2522%253A%2522%252F.codesandbox%252Ftasks.json%2522%252C%2522id%2522%253A%2522cls44rtyb00x83b6jlymjimzf%2522%252C%2522mode%2522%253A%2522permanent%2522%252C%2522state%2522%253A%2522IDLE%2522%257D%252C%257B%2522id%2522%253A%2522cls45j2w900023b6jkyxepe23%2522%252C%2522mode%2522%253A%2522permanent%2522%252C%2522type%2522%253A%2522FILE%2522%252C%2522filepath%2522%253A%2522%252Fsrc%252Fuser.ts%2522%252C%2522state%2522%253A%2522IDLE%2522%257D%255D%252C%2522id%2522%253A%2522cls45l4e100e23b6jkuqgwr6j%2522%252C%2522activeTabId%2522%253A%2522cls42716o00013b6j9grb4p87%2522%257D%252C%2522cls45l4e100e33b6jef6zgmcq%2522%253A%257B%2522tabs%2522%253A%255B%257B%2522type%2522%253A%2522TASK_PORT%2522%252C%2522port%2522%253A3000%252C%2522taskId%2522%253A%2522start%253Adev%2522%252C%2522id%2522%253A%2522cls44z7pr027b3b6jiap8g5si%2522%252C%2522mode%2522%253A%2522permanent%2522%252C%2522path%2522%253A%2522%2522%257D%255D%252C%2522id%2522%253A%2522cls45l4e100e33b6jef6zgmcq%2522%252C%2522activeTabId%2522%253A%2522cls44z7pr027b3b6jiap8g5si%2522%257D%252C%2522cls45l4e100e43b6j74q1yn5d%2522%253A%257B%2522tabs%2522%253A%255B%257B%2522type%2522%253A%2522TASK_LOG%2522%252C%2522taskId%2522%253A%2522start%253Adev%2522%252C%2522id%2522%253A%2522cls44t38d01hw3b6j1415tvh5%2522%252C%2522mode%2522%253A%2522permanent%2522%257D%255D%252C%2522id%2522%253A%2522cls45l4e100e43b6j74q1yn5d%2522%252C%2522activeTabId%2522%253A%2522cls44t38d01hw3b6j1415tvh5%2522%257D%257D%252C%2522showDevtools%2522%253Atrue%252C%2522showShells%2522%253Afalse%252C%2522showSidebar%2522%253Atrue%252C%2522sidebarPanelSize%2522%253A13.74338624338624%257D)
+
+## Demo Playground
+
+Feel free to play with the demo version at [https://demo.dryerjs.com/quickstart](https://demo.dryerjs.com/quickstart).
+Rate limits are applied to prevent abuse, documents are automatically deleted after 1 hour.
+You can only see documents created by you from your own IP address.
+
+## Sample requests
+
+```graphql copy
+mutation CreateUser {
+  createUser(input: {
+    email: "admin@dryerjs.com"
+    name: "Admin"
+    password: "ChangeMe123!"
+  }) {
+    id
+    email
+    name
+  }
+}
+```
+
+```graphql copy
+mutation UpdateUser {
+  updateUser(input: {
+    id: "<<SOME_MONGO_OBJECT_ID>>"
+    name: "Super Admin"
+  }) {
+    id
+    email
+    name
+  }
+}
+```
+
+```graphql copy
+query PaginateUsers {
+  paginateUsers(limit: 10, page: 1) {
+    docs {
+      email
+      id
+      name
+    }
+    limit
+    page
+    pagingCounter
+    totalDocs
+    totalPages
+    hasPrevPage
+    hasNextPage
+  }
+}
+```
+
+```graphql copy
+query User {
+  user(id: "<<SOME_MONGO_OBJECT_ID>>") {
+    id
+    email
+    name
+  }
+}
+```
+
+```graphql copy
+mutation RemoveUser {
+  removeUser(id: "<<SOME_MONGO_OBJECT_ID>>") {
+    success
+  }
+}
+```
