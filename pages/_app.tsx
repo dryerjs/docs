@@ -17,7 +17,7 @@ export default function MyApp({ Component, pageProps }) {
 
         setTimeout(() => {
           gtag('event', 'conversion', {
-            'send_to': 'AW-11479572312/a8_gCMbv7YoZENi-8eEq',
+            'send_to': 'AW-11486140135/KTE3CN-Ps44ZEOetguUq',
             'value': 1.0,
             'currency': 'VND'
           });
