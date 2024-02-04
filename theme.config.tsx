@@ -7,6 +7,7 @@ const config: DocsThemeConfig = {
   project: {
     link: "https://github.com/dryerjs/dryerjs",
   },
+  head: <meta name="facebook-domain-verification" content="pkyxoajwnfiqak4l2l0xgudvlp9rry" />,
   chat: {
     link: "https://discord.gg/mBZN86W5Fa",
   },
@@ -19,7 +20,6 @@ const config: DocsThemeConfig = {
   },
   primaryHue: 161,
   primarySaturation: 100,
-  head: null,
   useNextSeoProps() {
     return {
       titleTemplate: "%s – DryerJS",
