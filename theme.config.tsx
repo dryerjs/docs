@@ -19,7 +19,14 @@ const config: DocsThemeConfig = {
   },
   primaryHue: 161,
   primarySaturation: 100,
-  head: null,
+  head: (
+    <>
+      <meta
+        name="facebook-domain-verification"
+        content="4zlvb8dll3eri6xegklodvem9fywca"
+      />
+    </>
+  ),
   useNextSeoProps() {
     return {
       titleTemplate: "%s – DryerJS",
